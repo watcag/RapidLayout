@@ -1,0 +1,19 @@
+apply plugin: 'java'
+jar.enabled = false
+
+project.buildDir = 'bin'
+
+sourceSets {
+  main {
+    java.outputDir = file('bin')
+    java {
+      srcDirs = ['src']
+    }    
+  }
+}
+
+dependencies {
+  compile fileTree(dir: 'jars', include: ['*.jar'])
+
+}
+

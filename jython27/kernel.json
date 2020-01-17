@@ -1,0 +1,10 @@
+{
+ "argv": ["java",
+          "-classpath",
+          "/Users/zhangniansong/RapidWright/bin/:/Users/zhangniansong/RapidWright/jars/json.jar:/Users/zhangniansong/RapidWright/jars/jopt-simple-5.0.4.jar:/Users/zhangniansong/RapidWright/jars/aopalliance-1.0.jar:/Users/zhangniansong/RapidWright/jars/minlog-1.2.jar:/Users/zhangniansong/RapidWright/jars/protobuf-java-3.0.2.jar:/Users/zhangniansong/RapidWright/jars/opt4j-operators-3.1.4.jar:/Users/zhangniansong/RapidWright/jars/opt4j-viewer-3.1.4.jar:/Users/zhangniansong/RapidWright/jars/qtjambi-4.5.2_01.jar:/Users/zhangniansong/RapidWright/jars/junit-4.12.jar:/Users/zhangniansong/RapidWright/jars/qtjambi-linux64-gcc-4.5.2_01.jar:/Users/zhangniansong/RapidWright/jars/opt4j-3.1.4.jar:/Users/zhangniansong/RapidWright/jars/commons-cli-1.2.jar:/Users/zhangniansong/RapidWright/jars/objenesis-2.1.jar:/Users/zhangniansong/RapidWright/jars/reflectasm-1.10.1-shaded.jar:/Users/zhangniansong/RapidWright/jars/jupyter-kernel-jsr223.jar:/Users/zhangniansong/RapidWright/jars/opt4j-core-3.1.4.jar:/Users/zhangniansong/RapidWright/jars/opt4j-tutorial-3.1.4.jar:/Users/zhangniansong/RapidWright/jars/opt4j-optimizers-3.1.4.jar:/Users/zhangniansong/RapidWright/jars/org.ow2.sat4j.core-2.3.3-tests.jar:/Users/zhangniansong/RapidWright/jars/opt4j-satdecoding-3.1.4.jar:/Users/zhangniansong/RapidWright/jars/jeromq-0.3.6.jar:/Users/zhangniansong/RapidWright/jars/guice-4.0-beta5.jar:/Users/zhangniansong/RapidWright/jars/org.ow2.sat4j.core-2.3.3.jar:/Users/zhangniansong/RapidWright/jars/org.ow2.sat4j.pb-2.3.3.jar:/Users/zhangniansong/RapidWright/jars/rapidwright-api-lib-2019.1.2.jar:/Users/zhangniansong/RapidWright/jars/opt4j-benchmarks-3.1.4.jar:/Users/zhangniansong/RapidWright/jars/kryo-4.0.0.jar:/Users/zhangniansong/RapidWright/jars/guice-multibindings-4.0-beta5.jar:/Users/zhangniansong/RapidWright/jars/javax.inject-1.jar:/Users/zhangniansong/RapidWright/jars/jython-standalone-2.7.0.jar:/Users/zhangniansong/RapidWright/jars/guava-16.0.1.jar",
+          "org.jupyterkernel.kernel.Session",
+          "-k", "python",
+          "-f", "{connection_file}"],
+ "display_name": "Jython 2.7",
+ "language": "python"
+}
