@@ -11,10 +11,7 @@ import com.xilinx.rapidwright.edif.EDIFLibrary;
 import com.xilinx.rapidwright.design.Module;
 
 import java.io.*;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 import static main.Tool.*;
 
@@ -539,6 +536,19 @@ public class Experiments {
         }
     }
 
+    public static void readConfig() throws  IOException {
+        // try to read config
+        Properties prop = new Properties();
+        String propFileName = System.getProperty("RAPIDWRIGHT_PATH") + "/config.properties";
+        InputStream inputStream = new FileInputStream(propFileName);
+        prop.load(inputStream);
+
+        String xmin = prop.getProperty("xmin");
+        String device = prop.getProperty("device");
+
+        System.out.println("xmin = " + xmin + " device = " + device);
+    }
+
 
     public static void main(String[] args) throws IOException {
 
@@ -548,7 +558,9 @@ public class Experiments {
         else
             System.setProperty("RAPIDWRIGHT_PATH", System.getenv("RAPIDWRIGHT_PATH"));
 
-        test_performance("EA");
+
+
+        //test_performance("EA");
 
         //transfer("xcvu27p");
 
@@ -580,6 +592,9 @@ public class Experiments {
 //        PrintWriter pw = new PrintWriter(fw, true);
 //        Tool.write_XDC(result, pw);
 
+
+
+        readConfig();
 
     }
 
