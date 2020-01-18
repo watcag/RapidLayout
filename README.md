@@ -32,7 +32,6 @@ be found [here](https://gradle.org/install/#manually). Also make sure to add `$(
       ├── gradlew
       ├── gradlew.bat
       ├── jars
-      ├── ltx_templates
       ├── result
       ├── src
       ├── tcl
@@ -42,6 +41,7 @@ be found [here](https://gradle.org/install/#manually). Also make sure to add `$(
    * Configure RapidWright Path: 
    ```export RAPIDWRIGHT_PATH=<THE_REPO_PATH>```
    * Add compiled Java files and jars to `CLASSPATH` variable: 
+   
    ```export CLASSPATH=$RAPIDWRIGHT_PATH/bin:$(echo $RAPIDWRIGHT_PATH/jars/*.jar | tr ' ' ':')```
 
 ### Build Project
