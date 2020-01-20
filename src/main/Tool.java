@@ -1,9 +1,8 @@
 package main;
 
 import Utils.Utils;
-import com.xilinx.rapidwright.design.Cell;
-import com.xilinx.rapidwright.design.Design;
-import com.xilinx.rapidwright.design.Net;
+import com.xilinx.rapidwright.design.*;
+import com.xilinx.rapidwright.design.Module;
 import com.xilinx.rapidwright.device.Device;
 import com.xilinx.rapidwright.device.Site;
 import com.xilinx.rapidwright.edif.*;
@@ -348,10 +347,66 @@ public class Tool {
         return clone;
     }
 
+    public static Properties getProperties() throws IOException {
+        String config = System.getProperty("RAPIDWRIGHT_PATH") + "/config.properties";
+        Properties prop = new Properties();
+        InputStream inputStream = new FileInputStream(config);
+        prop.load(inputStream);
+        return prop;
+    }
+
     public static void matplot_visualize(String result_xdc){
         String python_script = System.getProperty("user.home") + "/RapidWright/src/visualize/main.py";
         String cmd = "python3 " + python_script + " " + result_xdc;
         execute_cmd(cmd);
 
+    }
+
+
+    public static Design replicateSLR(String routedSLR){
+
+        Design d = Design.readCheckpoint(routedSLR);
+
+        Design design = new Design("new", d.getPartName());
+        design.setAutoIOBuffers(false);
+
+        Module module = new Module(d);
+
+        for (EDIFCell cell : d.getNetlist().getWorkLibrary().getCells()){
+            design.getNetlist().getWorkLibrary().addCell(cell);
+        }
+
+        EDIFLibrary hdi = design.getNetlist().getHDIPrimitivesLibrary();
+        for (EDIFCell cell : d.getNetlist().getHDIPrimitivesLibrary().getCells()){
+            if (!hdi.containsCell(cell))
+                hdi.addCell(cell);
+        }
+
+        ArrayList<Site> allValidPlacement = module.calculateAllValidPlacements(d.getDevice());
+
+        for(Site anchor : allValidPlacement){
+            ModuleInst mi = design.createModuleInst(allValidPlacement.indexOf(anchor) + "_moduleInst", module);
+            design.addModuleInstNetlist(mi, module.getNetlist());
+            mi.place(anchor);
+        }
+
+        return design;
+    }
+
+    public static void printParameters() throws IOException {
+        Properties prop = getProperties();
+        System.out.println("Using Device: " + prop.getProperty("device"));
+        System.out.println("Hard Block Optimization Algorithm: " + prop.getProperty("method"));
+        System.out.println("Optimization Process Visualization: " + prop.getProperty("opt_visual"));
+        System.out.println("Draw Final Placement Result with Matplotlib? " + prop.getProperty("matplotlib_visual"));
+        System.out.println("Proceed Optimization? " + prop.getProperty("optimization"));
+        System.out.println("Use RapidWright Synthesis (RapidSynth)? " + prop.getProperty("rapidSynth"));
+        System.out.println("Use SLR Replication? " + prop.getProperty("SLRCopy"));
+        System.out.println("Use automatic pipeline? " + prop.getProperty("autoPipeline"));
+        System.out.println("Pipeline Depth: " + prop.getProperty("pipelineDepth") + " (if auto-pipeline is enabled, this will be ignored");
+        System.out.println("Vivado verbose: " + prop.getProperty("vivado_verbose"));
+
+        System.out.println("Collect data to make evolution gif? " + prop.getProperty("collect_gif_data"));
+        System.out.println("Collect convergence data? " + prop.getProperty("collect_converge_data"));
     }
 }

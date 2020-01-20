@@ -338,7 +338,7 @@ public class AutoPipeline {
 
         int blockNum = 2;
 
-        Design d = Vivado.synthesize_vivado(blockNum, part, true, log);
+        Design d = Vivado.synthesize_vivado(blockNum, part, true);
 
         String[] srcEDIFCells = new String[]{
                 "name[block].dut/conv1/bram_inst_rdc1","name[block].dut/conv2/bram_inst_rdc1",
@@ -375,7 +375,7 @@ public class AutoPipeline {
             p.delete();
         d.writeCheckpoint(pipelined);
 
-        Vivado.finishPlacementNRoute(pipelined, blockNum, true, log);
+        Vivado.finishPlacementNRoute(pipelined, blockNum, true);
 
     }
 

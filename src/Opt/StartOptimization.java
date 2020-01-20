@@ -134,7 +134,7 @@ public class StartOptimization {
     }
 
 
-    public Map<Integer, List<Site[]>> main(int iteration, int block_num, String device,
+    public Map<Integer, List<Site[]>> main(int block_num, String device,
                                            boolean visual,
                                            String method,
                                            int population, int parents, int children, double crossoverR,
@@ -143,6 +143,7 @@ public class StartOptimization {
 
         Global.method = method;
         Global.time = "run_at_" + System.currentTimeMillis();
+        int iteration = (int)1e8;
 
         EvolutionaryAlgorithmModule evolutionaryAlgorithmModule = new EvolutionaryAlgorithmModule();
         evolutionaryAlgorithmModule.setGenerations(iteration);

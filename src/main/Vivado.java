@@ -12,20 +12,20 @@ import java.util.List;
 import java.util.Map;
 
 public class Vivado {
-    public static Design synthesize_with_seed(int block_num, String device, String part, boolean save, boolean verbose, PrintWriter log) {
+    public static Design synthesize_with_seed(int block_num, String device, String part, boolean save, boolean verbose) {
         long start_time = System.nanoTime();
 
         // synthesize seed first, if seed is not available
         String seed_path = System.getProperty("user.home") + "/RapidWright/checkpoint/seed.dcp";
         File seed_file = new File(seed_path);
         if (!seed_file.exists())
-            synthesize_seed(part, verbose, log);
+            synthesize_seed(part, verbose);
         else{
             Design d = Design.readCheckpoint(seed_path);
             Design temp_d = new Design("temp", device);
             if (!d.getPartName().equals(temp_d.getPartName())) { // if the seed is not compatible
                 System.out.println(">>>>WARNING<<<<  -- Seed's Device Part Name is different from requested, redo seed synthesis......");
-                synthesize_seed(part, verbose, log);
+                synthesize_seed(part, verbose);
             }
         }
 
@@ -38,9 +38,6 @@ public class Vivado {
         System.out.println(">>>-----------------------------------------------");
         System.out.println(s);
         System.out.println(">>>-----------------------------------------------");
-        log.println(">>>-----------------------------------------------");
-        log.println(s);
-        log.println(">>>-----------------------------------------------");
 
         if (save)
             design.writeCheckpoint(System.getProperty("user.home")+"/RapidWright/checkpoint/blockNum="+block_num+"_synth.dcp");
@@ -48,7 +45,7 @@ public class Vivado {
         return design;
     }
 
-    public static Design synthesize_vivado(int block_num, String part, boolean verbose, PrintWriter log){
+    public static Design synthesize_vivado(int block_num, String part, boolean verbose){
         String tcl_path = System.getProperty("user.home") + "/RapidWright/tcl/synth.tcl";
         String output_path = System.getProperty("user.home") + "/RapidWright/checkpoint/blockNum=" + block_num;
         File checkpoint = new File(output_path+".dcp");
@@ -71,20 +68,17 @@ public class Vivado {
         }
 
         long start_time = System.nanoTime();
-        vivado_cmd("vivado -mode tcl -source " + tcl_path, verbose, log);
+        vivado_cmd("vivado -mode tcl -source " + tcl_path, verbose);
         long end_time = System.nanoTime();
         String s = "Synthesis - " + block_num + " conv blocks, time = " + (end_time-start_time)/1e9/60 + " min";
         System.out.println(">>>-----------------------------------------------");
         System.out.println(s);
         System.out.println(">>>-----------------------------------------------");
-        log.println(">>>-----------------------------------------------");
-        log.println(s);
-        log.println(">>>-----------------------------------------------");
 
         return Design.readCheckpoint(output_path+".dcp");
     }
 
-    public static void synthesize_seed(String part, boolean verbose, PrintWriter log){
+    public static void synthesize_seed(String part, boolean verbose){
         String tcl_path = System.getProperty("user.home") + "/RapidWright" + "/tcl/synth_seed.tcl";
         String output_path = System.getProperty("user.home") + "/RapidWright/checkpoint/seed.dcp";
 
@@ -102,20 +96,17 @@ public class Vivado {
         }
 
         long start_time = System.nanoTime();
-        vivado_cmd("vivado -mode tcl -source " + tcl_path, verbose, log);
+        vivado_cmd("vivado -mode tcl -source " + tcl_path, verbose);
         long end_time = System.nanoTime();
         String s = "Synthesis - " + 1 + " conv blocks, time = " + (end_time-start_time)/1e9/60 + " min";
         System.out.println(">>>-----------------------------------------------");
         System.out.println(s);
         System.out.println(">>>-----------------------------------------------");
-        log.println(">>>-----------------------------------------------");
-        log.println(s);
-        log.println(">>>-----------------------------------------------");
 
     }
 
     public static double implementation(int block_num, String part, String device, Map<Integer, List<Site[]>> placement,
-                                        boolean save, boolean verbose, PrintWriter log) throws IOException {
+                                        boolean save, boolean verbose) throws IOException {
         String xdc_path = System.getProperty("RAPIDWRIGHT_PATH") + "/result/blockNum=" + block_num + ".xdc";
         String tcl_path = System.getProperty("RAPIDWRIGHT_PATH") + "/tcl/full_implementation.tcl";
         String output_path = System.getProperty("RAPIDWRIGHT_PATH") + "/checkpoint/Vivado_routed_" + block_num + ".dcp";
@@ -143,14 +134,11 @@ public class Vivado {
         }
 
         long start_time = System.nanoTime();
-        String slack = vivado_cmd("vivado -mode tcl -source " + tcl_path, verbose, log);
+        String slack = vivado_cmd("vivado -mode tcl -source " + tcl_path, verbose);
         long end_time = System.nanoTime();
         System.out.println(">>>-----------------------------------------------");
         System.out.println("Full Vivado Implementation time = " + (end_time-start_time)/1e9/60 + " min");
         System.out.println(">>>-----------------------------------------------");
-        log.println(">>>-----------------------------------------------");
-        log.println("Full Vivado Implementation time = " + (end_time-start_time)/1e9/60 + " min");
-        log.println(">>>-----------------------------------------------");
 
         double violation = Double.parseDouble(slack.substring(slack.indexOf("-"), slack.indexOf("ns")));
         double clk_period = 1 - violation;
@@ -160,7 +148,7 @@ public class Vivado {
     }
 
 
-    public static String vivado_cmd(String cmd, boolean verbose, PrintWriter log) {
+    public static String vivado_cmd(String cmd, boolean verbose) {
         String command = "" +
                 "export PATH=$PATH:~/Vivado/2018.3/bin/;" +
                 cmd;
@@ -188,7 +176,6 @@ public class Vivado {
                 if (line.startsWith("Slack")) slack = line;
                 if (verbose){
                     System.out.println(line);
-                    log.println(line);
                 }
             }
             p.waitFor();
@@ -206,7 +193,7 @@ public class Vivado {
     *  or else it only times the selected one
     * */
     public static void vivadoTiming(String timing_path, String part, String device, int blockn,
-                                    boolean saveDCP, boolean verbose, PrintWriter log) throws IOException {
+                                    boolean saveDCP, boolean verbose) throws IOException {
         String path = System.getProperty("user.home") + "/RapidWright/result";
         File dir = new File(path);
         File[] files = dir.listFiles((d, name) -> name.endsWith(".xdc"));
@@ -220,18 +207,16 @@ public class Vivado {
             for (Integer n : block_nums) {
                 if (blockn == -1){ // set block n to -1 to time all results, or else only time block number = blockn
                     Map<Integer, List<Site[]>> placement = Tool.getMapFromXDC(path + "/blockNum="+n+".xdc", device);
-                    double freq = implementation(n, part, device, placement, saveDCP, verbose, log);
+                    double freq = implementation(n, part, device, placement, saveDCP, verbose);
                     printWriter.println(freq);
                     System.out.println("$$$ TIMING RESULT : block num  = " + n + "\tfrequency = " + freq);
-                    log.println("$$$ TIMING RESULT : block num  = " + n + "\tfrequency = " + freq);
                 } else {
                     if (n != blockn)
                         continue;
                     Map<Integer, List<Site[]>> placement = Tool.getMapFromXDC(path + "/blockNum="+n+".xdc", device);
-                    double freq = implementation(n, part, device, placement, saveDCP, verbose, log);
+                    double freq = implementation(n, part, device, placement, saveDCP, verbose);
                     printWriter.println(freq);
                     System.out.println("$$$ TIMING RESULT : block num  = " + n + "\tfrequency = " + freq);
-                    log.println("$$$ TIMING RESULT : block num  = " + n + "\tfrequency = " + freq);
                 }
 
             }
@@ -250,7 +235,7 @@ public class Vivado {
         tcl.println("set_property CONTAIN_ROUTING true [get_pblocks pblock_name.dut]");
     }
 
-    public static double finishPlacementNRoute(String placedDCP, int block_num, boolean verbose, PrintWriter log) throws IOException {
+    public static double finishPlacementNRoute(String placedDCP, int block_num, boolean verbose) throws IOException {
         String tcl_path = System.getProperty("RAPIDWRIGHT_PATH") + "/tcl/finish_placement.tcl";
         String output_path = System.getProperty("RAPIDWRIGHT_PATH") + "/checkpoint/blockNum=" + block_num + "_routed.dcp";
         // write tcl script
@@ -265,14 +250,11 @@ public class Vivado {
         }
 
         long start_time = System.nanoTime();
-        String slack = Vivado.vivado_cmd("vivado -mode tcl -source " + tcl_path, verbose, log);
+        String slack = Vivado.vivado_cmd("vivado -mode tcl -source " + tcl_path, verbose);
         long end_time = System.nanoTime();
         System.out.println(">>>-----------------------------------------------");
         System.out.println("Continued Placement and Route (Vivado) time = " + (end_time-start_time)/1e9/60 + " min");
         System.out.println(">>>-----------------------------------------------");
-        log.println(">>>-----------------------------------------------");
-        log.println("Continued Placement and Route (Vivado) time = " + (end_time-start_time)/1e9/60 + " min");
-        log.println(">>>-----------------------------------------------");
 
 
         double violation = Double.parseDouble(slack.substring(slack.indexOf("-"), slack.indexOf("ns")));
@@ -284,7 +266,7 @@ public class Vivado {
 
     public static double finishPlacementNRoute_2(String placedDCP, int block_num,
                                                  Map<Integer, List<Site[]>> placement, String device,
-                                                 boolean verbose, PrintWriter log) throws IOException {
+                                                 boolean verbose) throws IOException {
         String tcl_path = System.getProperty("RAPIDWRIGHT_PATH") + "/tcl/finish_placement.tcl";
         String output_path = System.getProperty("RAPIDWRIGHT_PATH") + "/checkpoint/blockNum=" + block_num + "_routed.dcp";
         String output_edif = System.getProperty("RAPIDWRIGHT_PATH") + "/checkpoint/blockNum=" + block_num + "_routed.edf";
@@ -302,15 +284,11 @@ public class Vivado {
         }
 
         long start_time = System.nanoTime();
-        String slack = Vivado.vivado_cmd("vivado -mode tcl -source " + tcl_path, verbose, log);
+        String slack = Vivado.vivado_cmd("vivado -mode tcl -source " + tcl_path, verbose);
         long end_time = System.nanoTime();
         System.out.println(">>>-----------------------------------------------");
         System.out.println("Continued Placement and Route (Vivado) time = " + (end_time-start_time)/1e9/60 + " min");
         System.out.println(">>>-----------------------------------------------");
-        log.println(">>>-----------------------------------------------");
-        log.println("Continued Placement and Route (Vivado) time = " + (end_time-start_time)/1e9/60 + " min");
-        log.println(">>>-----------------------------------------------");
-
 
         double violation = Double.parseDouble(slack.substring(slack.indexOf("-"), slack.indexOf("ns")));
         double clk_period = 1 - violation;
@@ -335,7 +313,7 @@ public class Vivado {
         }
 
         long start_time = System.nanoTime();
-        Vivado.vivado_cmd("vivado -mode tcl -source " + tcl_path, true, log);
+        Vivado.vivado_cmd("vivado -mode tcl -source " + tcl_path, true);
         long end_time = System.nanoTime();
         System.out.println(">>>-----------------------------------------------");
         System.out.println("Vivado baseline (no constraints) time = " + (end_time-start_time)/1e9/60 + " min");
@@ -345,7 +323,7 @@ public class Vivado {
         log.println(">>>-----------------------------------------------");
     }
 
-    public static void vivadoBaselineSynth(int block_num, String part, PrintWriter log) throws IOException {
+    public static void vivadoBaselineSynth(int block_num, String part) throws IOException {
         String tcl_path = System.getProperty("RAPIDWRIGHT_PATH") + "/tcl/blockNum=" + block_num + "_synth.tcl";
         String dcp_path = System.getProperty("RAPIDWRIGHT_PATH") + "/checkpoint/blockNum=" + block_num + "_synth.dcp";
 
@@ -359,11 +337,11 @@ public class Vivado {
             printWriter.close();
         }
 
-        Vivado.vivado_cmd("vivado -mode tcl -source " + tcl_path, true, log);
+        Vivado.vivado_cmd("vivado -mode tcl -source " + tcl_path, true);
     }
 
 
-    public static void vivadoBaselineWithConstraints(int block_num, String part, PrintWriter log) throws IOException {
+    public static void vivadoBaselineWithConstraints(int block_num, String part) throws IOException {
 
         System.out.println("--- Vivado Baseline, With Constraints --- ");
 
@@ -386,17 +364,14 @@ public class Vivado {
 
         long start_time = System.nanoTime();
         System.out.println("Starting Vivado, execute script: " + tcl_path );
-        Vivado.vivado_cmd("vivado -mode tcl -source " + tcl_path, true, log);
+        Vivado.vivado_cmd("vivado -mode tcl -source " + tcl_path, true);
         long end_time = System.nanoTime();
         System.out.println(">>>-----------------------------------------------");
         System.out.println("Vivado baseline (with constraints) time = " + (end_time-start_time)/1e9/60 + " min");
         System.out.println(">>>-----------------------------------------------");
-        log.println(">>>-----------------------------------------------");
-        log.println("Vivado baseline (with constraints) time =" + (end_time-start_time)/1e9/60 + " min");
-        log.println(">>>-----------------------------------------------");
     }
 
-    public static double implement_pipelined_design(String pipelinedDCP, String xdc_path, int block_num, boolean verbose, PrintWriter log) throws IOException {
+    public static double implement_pipelined_design(String pipelinedDCP, String xdc_path, int block_num, boolean verbose) throws IOException {
         String tcl_path = System.getProperty("RAPIDWRIGHT_PATH") + "/tcl/finish_placement.tcl";
         String output_path = System.getProperty("RAPIDWRIGHT_PATH") + "/checkpoint/blockNum=" + block_num + "_routed.dcp";
         // write tcl script
@@ -412,15 +387,11 @@ public class Vivado {
         }
 
         long start_time = System.nanoTime();
-        String slack = Vivado.vivado_cmd("vivado -mode tcl -source " + tcl_path, verbose, log);
+        String slack = Vivado.vivado_cmd("vivado -mode tcl -source " + tcl_path, verbose);
         long end_time = System.nanoTime();
         System.out.println(">>>-----------------------------------------------");
         System.out.println("Continued Placement and Route (Vivado) time = " + (end_time-start_time)/1e9/60 + " min");
         System.out.println(">>>-----------------------------------------------");
-        log.println(">>>-----------------------------------------------");
-        log.println("Continued Placement and Route (Vivado) time = " + (end_time-start_time)/1e9/60 + " min");
-        log.println(">>>-----------------------------------------------");
-
 
         double violation = Double.parseDouble(slack.substring(slack.indexOf("-"), slack.indexOf("ns")));
         double clk_period = 1 - violation;

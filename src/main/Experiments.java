@@ -67,10 +67,9 @@ public class Experiments {
             long start = System.nanoTime();
             Map<Integer, List<Site[]>> tmp_result =
                     AutoPlacement.find_solution(
-                            method, blocknum, 1000000, visualization, device,
+                            method, blocknum, visualization, device,
                             population, parents, children, crossoverR,
-                            x_min, x_max, y_min, y_max,
-                            log);
+                            x_min, x_max, y_min, y_max);
             long end = System.nanoTime();
             double seconds = (end - start) / 1e9;
             Utils U = new Utils(tmp_result, device);
@@ -111,7 +110,7 @@ public class Experiments {
         System.out.println("Printed xdc file: " + xdc);
 
         // Synthesis
-        Design design = Vivado.synthesize_vivado(480, part, true, log);
+        Design design = Vivado.synthesize_vivado(480, part, true);
 
         // Pipeline
         AutoPipeline.rapidsynth_autopipeline(design, placement);
@@ -119,7 +118,7 @@ public class Experiments {
         design.writeCheckpoint(pipelined);
 
         // finish
-        Vivado.implement_pipelined_design(pipelined, xdc, 480, true, log);
+        Vivado.implement_pipelined_design(pipelined, xdc, 480, true);
     }
 
 
@@ -149,10 +148,9 @@ public class Experiments {
             FileWriter fw = new FileWriter(xdc_result);
             PrintWriter pw = new PrintWriter(fw, true);
             result = AutoPlacement.find_solution(
-                    "CMA", blocknum, 1000, false, device,
+                    "CMA", blocknum, false, device,
                     0, 0, 0, crossoverR,
-                    x_min, x_max, y_min, y_max,
-                    log);
+                    x_min, x_max, y_min, y_max);
             Tool.write_XDC(result, pw);
             pw.close();
         }
@@ -168,7 +166,7 @@ public class Experiments {
         pr.close();
 
         // synth
-        Design d = Vivado.synthesize_vivado(blocknum, part, true, log);
+        Design d = Vivado.synthesize_vivado(blocknum, part, true);
         System.out.println("synthesis finished");
 
         // placement & site-routing
@@ -204,7 +202,7 @@ public class Experiments {
         d.writeCheckpoint(placedDCPPath);
 
         // finish route
-        double freq = Vivado.finishPlacementNRoute(placedDCPPath, blocknum, true, log);
+        double freq = Vivado.finishPlacementNRoute(placedDCPPath, blocknum, true);
         System.out.println("$$$ TIMING RESULT : block num  = " + blocknum + "\t frequency = " + freq/1e6 + "MHz");
         log.println("$$$ TIMING RESULT : block num  = " + blocknum + "\t frequency = " + freq/1e6 + " MHz");
 
@@ -231,9 +229,9 @@ public class Experiments {
         String[] methods = new String[]{"CMA", "EA", "SA", "EA-reduced"};
         for (String method : methods)
             for (int i = 0 ; i < 10; i++)
-                main.AutoPlacement.find_solution(method,blocknum, 100000,
+                main.AutoPlacement.find_solution(method,blocknum,
                         visualization, device, population, parents, children, crossoverR,
-                        x_min, x_max, y_min, y_max, log);
+                        x_min, x_max, y_min, y_max);
 
     }
 
@@ -256,9 +254,9 @@ public class Experiments {
 
         String[] methods = new String[]{"CMA"};
         for (String method : methods)
-            main.AutoPlacement.find_solution(method,blocknum, 100000,
+            main.AutoPlacement.find_solution(method,blocknum,
                         visualization, device, population, parents, children, crossoverR,
-                        x_min, x_max, y_min, y_max, log);
+                        x_min, x_max, y_min, y_max);
 
     }
 
@@ -371,10 +369,9 @@ public class Experiments {
             FileWriter fw = new FileWriter(xdc_result);
             PrintWriter pw = new PrintWriter(fw, true);
             result = AutoPlacement.find_solution(
-                    "CMA", blocknum, 1000, false, device,
+                    "CMA", blocknum,  false, device,
                     0, 0, 0, crossoverR,
-                    x_min, x_max, y_min, y_max,
-                    log);
+                    x_min, x_max, y_min, y_max);
             Tool.write_XDC(result, pw);
             pw.close();
         }
@@ -391,7 +388,7 @@ public class Experiments {
         pr.close();
 
         // synth
-        Design d = Vivado.synthesize_vivado(blocknum, part, true, log);
+        Design d = Vivado.synthesize_vivado(blocknum, part, true);
         System.out.println("synthesis finished");
 
         // placement & site-routing
@@ -420,7 +417,7 @@ public class Experiments {
         d.writeCheckpoint(placedDCPPath);
 
         // finish route
-        double freq = Vivado.finishPlacementNRoute_2(placedDCPPath, blocknum, result, device,  true, log);
+        double freq = Vivado.finishPlacementNRoute_2(placedDCPPath, blocknum, result, device,  true);
         System.out.println("$$$ TIMING RESULT : block num  = " + blocknum + "\t frequency = " + freq/1e6 + "MHz");
         log.println("$$$ TIMING RESULT : block num  = " + blocknum + "\t frequency = " + freq/1e6 + " MHz");
 
@@ -436,7 +433,7 @@ public class Experiments {
         FileWriter fileWriter = new FileWriter(logPath);
         PrintWriter log = new PrintWriter(fileWriter, true);
 
-        Vivado.synthesize_vivado(blockn, part, true, log);
+        Vivado.synthesize_vivado(blockn, part, true);
     }
 
 
@@ -472,7 +469,7 @@ public class Experiments {
         }
 
         long start_time = System.nanoTime();
-        String slack = Vivado.vivado_cmd("vivado -mode tcl -source " + tcl_path, true, log);
+        String slack = Vivado.vivado_cmd("vivado -mode tcl -source " + tcl_path, true);
         long end_time = System.nanoTime();
         System.out.println(">>>-----------------------------------------------");
         System.out.println("Full Vivado Implementation time = " + (end_time-start_time)/1e9/60 + " min");
