@@ -3,17 +3,12 @@ package OptReduced;
 import Utils.Utils;
 import com.google.inject.Inject;
 import com.google.inject.Module;
-import com.xilinx.rapidwright.design.Design;
-import com.xilinx.rapidwright.device.Device;
 import com.xilinx.rapidwright.device.Site;
-import com.xilinx.rapidwright.device.SiteTypeEnum;
 import main.Tool;
-import org.opt4j.core.Genotype;
 import org.opt4j.core.Individual;
 import org.opt4j.core.Objective;
 import org.opt4j.core.Objectives;
 import org.opt4j.core.common.completer.IndividualCompleterModule;
-import org.opt4j.core.genotype.PermutationGenotype;
 import org.opt4j.core.optimizer.Archive;
 import org.opt4j.core.optimizer.Control;
 import org.opt4j.core.optimizer.OptimizerIterationListener;
@@ -25,7 +20,6 @@ import org.opt4j.optimizers.sa.CoolingSchedule;
 import org.opt4j.optimizers.sa.CoolingScheduleModule;
 import org.opt4j.optimizers.sa.SimulatedAnnealingModule;
 import org.opt4j.viewer.ViewerModule;
-import org.python.bouncycastle.pqc.math.linearalgebra.Permutation;
 
 import java.io.File;
 import java.io.FileWriter;
@@ -33,19 +27,14 @@ import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.*;
 
+// Global variables to label convergence data, to make naming easier
 class Global {
     public static String method;
-    // we add this global time method to help label convergence data from each run
-    // this will make things easier
-    // so the plan is, everytime I start an optimization, I update this time string
-    // and when the optimization happens, at each iteration, the string remain unchanged
     public static String time = "";
 }
 
 
 public class StartOptimization {
-
-
 
     static class CoolingScheduleLinear implements CoolingSchedule {
         @Override
@@ -58,7 +47,7 @@ public class StartOptimization {
         Archive archive;
         Control control;
         int old_iteration;
-        double old_width;
+        double old_size;
         double old_wirelength;
 
         @Inject
@@ -69,6 +58,9 @@ public class StartOptimization {
 
         @Override
         public void iterationComplete(int i) {
+            // this function is called every time a iteration completes
+
+            // select best individual
             Individual best = null;
             int iterator = 0;
             for (Individual individual : archive) {
@@ -91,60 +83,70 @@ public class StartOptimization {
                 iterator++;
             }
 
-
+            // convergence checker
             assert best != null;
-            int checkPeriod = 50000; // SA
-            if (Global.method.equals("EA-reduced"))
+            int checkPeriod = 50000;
+            if (Global.method.equals("EA"))
                 checkPeriod = 2000;
 
             Objectives objectives = best.getObjectives();
             if (i % checkPeriod == 0) {
-                old_width = objectives.get(new Objective("Spread")).getDouble();
+                old_size = objectives.get(new Objective("Spread")).getDouble();
                 old_wirelength = objectives.get(new Objective("unifWireLength")).getDouble();
                 old_iteration = i;
             }
 
-            double width = objectives.get(new Objective("Spread")).getDouble();
+            double size = objectives.get(new Objective("Spread")).getDouble();
             double wirelength = objectives.get(new Objective("unifWireLength")).getDouble();
 
-            /* ------- Print out the solution information for visualization ---------*/
-            /*String path = System.getProperty("RAPIDWRIGHT_PATH") + "/result/" + Global.method + "/";
-            File file = new File(path);
-            if (file.mkdirs())
-                System.out.println("directory " + path + " is created");
-            if (i>30000) control.doTerminate();
-            if (i%10==0) {
-                String file_name = path + i + ".xdc";
-                try {
-                    PrintWriter pw = new PrintWriter(new FileWriter(file_name), true);
-                    Tool.write_XDC((Map<Integer, List<Site[]>>) best.getPhenotype(), pw);
-                    pw.close();
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
-            }*/
-            /*-----------------------------------------------------------------------*/
+            if (size >= old_size - 10 && wirelength >= old_wirelength - 1e5 && i > 2 * checkPeriod && i % checkPeriod == checkPeriod - 1) {
+                System.out.println("Terminated at iteration: " + i);
+                control.doTerminate();
+            }
 
-            /*--------------------plot convergence data----------------------*/
-            if (i > 30000) control.doTerminate();
-            String converge_data_path = System.getenv("RAPIDWRIGHT_PATH") + "/result/" + Global.method + "_convergence_data";
-            File data_path = new File(converge_data_path);
-            if (!data_path.exists())
-                data_path.mkdirs();
-            String this_run = converge_data_path + "/" + Global.time + ".txt";
+            // data collection options
+            Properties prop = null;
             try {
-                FileWriter this_run_fw = new FileWriter(this_run, true);
-                PrintWriter this_run_pw = new PrintWriter(this_run_fw, true);
-                this_run_pw.println(i + " " + wirelength + " " + width);
+                prop = Tool.getProperties();
             } catch (IOException e) {
                 e.printStackTrace();
             }
-            /*--------------------plot convergence data---------------------*/
+            assert prop != null;
+            boolean collect_gif_data = Boolean.parseBoolean(prop.getProperty("collect_gif_data"));
+            boolean collect_converge_data = Boolean.parseBoolean(prop.getProperty("collect_converge_data"));
 
+            if (collect_gif_data) {
+                String path = System.getProperty("RAPIDWRIGHT_PATH") + "/result/" + Global.method + "_gif_data/";
+                File file = new File(path);
+                if (file.mkdirs())
+                    System.out.println("directory " + path + " is created");
+                if (i>30000) return; // we only collect first 30k iterations
+                if (i % 10 == 0) {
+                    String file_name = path + i + ".xdc";
+                    try {
+                        PrintWriter pw = new PrintWriter(new FileWriter(file_name), true);
+                        Tool.write_XDC((Map<Integer, List<Site[]>>) best.getPhenotype(), pw);
+                        pw.close();
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    }
+                }
+            }
 
-            if (width >= old_width - 10 && wirelength >= old_wirelength - 1e5 && i > 2 * checkPeriod && i % checkPeriod == checkPeriod - 1) {
-                System.out.println("Terminated at iteration: " + i);
-                control.doTerminate();
+            if (collect_converge_data) {
+                String converge_data_path = System.getenv("RAPIDWRIGHT_PATH") + "/result/" + Global.method + "_convergence_data";
+                File data_path = new File(converge_data_path);
+                if (data_path.mkdirs())
+                    System.out.println("directory " + data_path + " is created");
+                if (i>30000) return;
+                String this_run = converge_data_path + "/" + Global.time + ".txt";
+                try {
+                    FileWriter this_run_fw = new FileWriter(this_run, true);
+                    PrintWriter this_run_pw = new PrintWriter(this_run_fw, true);
+                    this_run_pw.println(i + " " + wirelength + " " + size);
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
             }
 
         }

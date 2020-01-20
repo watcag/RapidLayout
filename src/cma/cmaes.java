@@ -6,7 +6,6 @@ import com.xilinx.rapidwright.design.Design;
 import com.xilinx.rapidwright.device.Device;
 import com.xilinx.rapidwright.device.Site;
 import com.xilinx.rapidwright.device.SiteTypeEnum;
-import com.xilinx.rapidwright.util.Pair;
 import main.Tool;
 import org.apache.commons.math3.optim.*;
 import org.apache.commons.math3.optim.nonlinear.scalar.GoalType;
@@ -38,7 +37,7 @@ public class cmaes {
         adapted.put(BRAM_MAP, allAvailSites.get(BRAM_SITE_TYPE));
         adapted.put(URAM_MAP, allAvailSites.get(URAM_SITE_TYPE));
 
-        Map<SiteTypeEnum, List<Site[]>> selectedSites = chooseSiteUniform(adapted, block_num);
+        Map<SiteTypeEnum, List<Site[]>> selectedSites = chooseSiteUniformly(adapted, block_num);
 
         PlaceEvaluator placeEvaluator = new PlaceEvaluator(selectedSites, device);
 
@@ -60,7 +59,8 @@ public class cmaes {
         return U.getUnifiedWireLength();
     }
 
-    public static Map<Integer, List<Site[]>> Optimization_param_fixed(CMAESOptimizer opt, Device dev, String device, int x_min, int x_max, int y_min, int y_max, int block_num){
+    public static Map<Integer, List<Site[]>> Optimization(CMAESOptimizer opt, Device dev, String device,
+                                                          int x_min, int x_max, int y_min, int y_max, int block_num){
 
         Map<SiteTypeEnum, List<List<Site>>> allAvailSites = Opt.PlaceCreator.getAvailableSites(dev, x_min, x_max, y_min, y_max);
         Map<SiteTypeEnum, List<List<Site>>> adapted = new HashMap<>();
@@ -68,7 +68,7 @@ public class cmaes {
         adapted.put(BRAM_MAP, allAvailSites.get(BRAM_SITE_TYPE));
         adapted.put(URAM_MAP, allAvailSites.get(URAM_SITE_TYPE));
 
-        Map<SiteTypeEnum, List<Site[]>> selectedSites = chooseSiteUniform(adapted, block_num);
+        Map<SiteTypeEnum, List<Site[]>> selectedSites = chooseSiteUniformly(adapted, block_num);
 
         PlaceEvaluator placeEvaluator = new PlaceEvaluator(selectedSites, device);
         List<Double> sigma_list = new ArrayList<>();
@@ -79,7 +79,6 @@ public class cmaes {
         final ObjectiveFunction objective = new ObjectiveFunction(placeEvaluator.getFitnessFunction());
         final CMAESOptimizer.PopulationSize populationSize = new CMAESOptimizer.PopulationSize(100);
         final GoalType goalType = GoalType.MINIMIZE;
-        // can we add multiple genotype at initial guess?
         final InitialGuess initialGuess = new InitialGuess(PlaceCreator.getInitial(block_num));
         final CMAESOptimizer.Sigma sigma = new CMAESOptimizer.Sigma(sigma_list.stream().mapToDouble(Double::doubleValue).toArray());
         final MaxEval maxEval = new MaxEval((int)1e9);
@@ -88,9 +87,6 @@ public class cmaes {
 
         PointValuePair result =
                 opt.optimize(goalType, objective, populationSize, initialGuess, sigma, maxEval, maxIter, unbounded);
-
-
-        System.out.println("result value = " + result.getValue());
 
         return PlaceDecoder.decode(result.getPoint(), selectedSites);
     }
@@ -146,11 +142,18 @@ public class cmaes {
         fw.close();
     }
 
+    /*
+     *  opt_search:
+     *      The optimization function with CMA-ES, called by AutoPlacement.findSolution()
+    */
     public static Map<Integer, List<Site[]>> opt_search(
             int x_min, int x_max, int y_min, int y_max,
             String Device,
             int block_num
     ) throws IOException {
+
+        /* optimization setup */
+        Device dev = (new Design("new Design", Device)).getDevice();
         int maxIteration = 100000;
         double stopFitness = 4500;
         boolean isActiveCMA = false;
@@ -158,88 +161,103 @@ public class cmaes {
         int checkFeasibleCount = 0;
         boolean generateStatistics = true;
 
-        /* optimization setup */
-        Device dev = (new Design("new Design", Device)).getDevice();
-
-
-        ConvergenceChecker<PointValuePair> checker = new ConvergenceChecker<PointValuePair>() {
+        /* define two convergence checkers for data collection */
+        String cvg_data_dir = System.getProperty("RAPIDWRIGHT_PATH") + "/result/CMA_converge_data/";
+        File cvg_dir = new File(cvg_data_dir);
+        if (cvg_dir.mkdirs())
+            System.out.println("created dir " + cvg_dir);
+        else
+            System.out.println("directory " + cvg_dir + " exists");
+        String converge_data = cvg_data_dir + "run_at_" + System.currentTimeMillis() + ".txt";
+        ConvergenceChecker<PointValuePair> checker_for_convergence_data = new ConvergenceChecker<PointValuePair>() {
             @Override
             public boolean converged(int i, PointValuePair previous, PointValuePair current) {
-
-                /* this convergence checker is for convergence visualization, making gifs */
-                if (i % 10 != 0) return i > 100000;
-
-                System.out.println("i = " + i);
-                String path = System.getProperty("RAPIDWRIGHT_PATH") + "/result/CMA/" + i + ".xdc";
-
                 Map<SiteTypeEnum, List<List<Site>>> allAvailSites = Opt.PlaceCreator.getAvailableSites(dev, x_min, x_max, y_min, y_max);
+                // change the keys of selected sites to accustom cma decoder
                 Map<SiteTypeEnum, List<List<Site>>> adapted = new HashMap<>();
                 adapted.put(DSP_MAP, allAvailSites.get(DSP_SITE_TYPE));
                 adapted.put(BRAM_MAP, allAvailSites.get(BRAM_SITE_TYPE));
                 adapted.put(URAM_MAP, allAvailSites.get(URAM_SITE_TYPE));
-
-                Map<SiteTypeEnum, List<Site[]>> selectedSites = chooseSiteUniform(adapted, block_num);
+                Map<SiteTypeEnum, List<Site[]>> selectedSites = chooseSiteUniformly(adapted, block_num);
+                double wirelength = 0, size;
                 try {
-                    PrintWriter pr = new PrintWriter(new FileWriter(path));
+                    PrintWriter pr = new PrintWriter(new FileWriter(converge_data, true), true);
                     Map<Integer, List<Site[]>> placement = PlaceDecoder.decode(current.getPoint(), selectedSites);
+                    Utils U = new Utils(placement, Device);
+                    wirelength = U.getUnifiedWireLength();
+                    size = U.getMaxBBoxSize();
+
+                    pr.println(i + " " + wirelength + " " + size);
+
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+                return wirelength < 4500;
+            }
+        };
+
+
+        String gif_data_dir = System.getProperty("RAPIDWRIGHT_PATH") + "/result/CMA_gif_data/";
+        File gif_dir = new File(gif_data_dir);
+        if (gif_dir.mkdirs())
+            System.out.println("created dir " + gif_dir);
+        else
+            System.out.println("directory " + gif_dir + " exists");
+        ConvergenceChecker<PointValuePair> checker_for_gif_data = new ConvergenceChecker<PointValuePair>() {
+            @Override
+            public boolean converged(int i, PointValuePair previous, PointValuePair current) {
+
+                Map<SiteTypeEnum, List<List<Site>>> allAvailSites = Opt.PlaceCreator.getAvailableSites(dev, x_min, x_max, y_min, y_max);
+                // change the keys of selected sites to accustom cma decoder
+                Map<SiteTypeEnum, List<List<Site>>> adapted = new HashMap<>();
+                adapted.put(DSP_MAP, allAvailSites.get(DSP_SITE_TYPE));
+                adapted.put(BRAM_MAP, allAvailSites.get(BRAM_SITE_TYPE));
+                adapted.put(URAM_MAP, allAvailSites.get(URAM_SITE_TYPE));
+                Map<SiteTypeEnum, List<Site[]>> selectedSites = chooseSiteUniformly(adapted, block_num);
+                Map<Integer, List<Site[]>> placement = PlaceDecoder.decode(current.getPoint(), selectedSites);
+                Utils U = new Utils(placement, Device);
+                double wirelength = U.getUnifiedWireLength();
+                if (i > 30000 || i % 10 != 0) return wirelength < 4500;
+
+                try {
+                    PrintWriter pr = new PrintWriter(new FileWriter(gif_data_dir + i + ".xdc"), true);
                     Tool.write_XDC(placement, pr);
                     pr.close();
                 } catch (IOException e) {
                     e.printStackTrace();
                 }
-
-                return i > 1000000;
+                return wirelength < 4500;
             }
         };
 
-        /* this part and the checker is used for collecting convergen plot's data */
-        String data_dir = System.getProperty("RAPIDWRIGHT_PATH") + "/result/cma_converge_data/";
-        File dir = new File(data_dir);
-        if (!dir.exists()) {
-            dir.mkdirs();
-            System.out.println("created dir " + dir);
-        } else {
-            System.out.println("directory " + dir + "exists");
+        /* data collection options */
+        Properties prop = null;
+        try {
+            prop = Tool.getProperties();
+        } catch (IOException e) {
+            e.printStackTrace();
         }
-        // everytime I call opt_search I create a new file whose name has the current time
-        // add that is okay because we do this outside of the convergence checker.
-        String converge_data = data_dir + "run_at_" + System.currentTimeMillis() + ".txt";
-
-        ConvergenceChecker<PointValuePair> checker_for_convergence_data = new ConvergenceChecker<PointValuePair>() {
-            @Override
-            public boolean converged(int i, PointValuePair previous, PointValuePair current) {
-                Map<SiteTypeEnum, List<List<Site>>> allAvailSites = Opt.PlaceCreator.getAvailableSites(dev, x_min, x_max, y_min, y_max);
-                Map<SiteTypeEnum, List<List<Site>>> adapted = new HashMap<>();
-                adapted.put(DSP_MAP, allAvailSites.get(DSP_SITE_TYPE));
-                adapted.put(BRAM_MAP, allAvailSites.get(BRAM_SITE_TYPE));
-                adapted.put(URAM_MAP, allAvailSites.get(URAM_SITE_TYPE));
-
-                Map<SiteTypeEnum, List<Site[]>> selectedSites = chooseSiteUniform(adapted, block_num);
-                try {
-                    PrintWriter pr = new PrintWriter(new FileWriter(converge_data, true), true);
-                    Map<Integer, List<Site[]>> placement = PlaceDecoder.decode(current.getPoint(), selectedSites);
-                    Utils U = new Utils(placement, "xcvu11p");
-                    double wirelength = U.getUnifiedWireLength();
-                    double width = U.getMaxSpread();
-
-                    pr.println(i + " " + wirelength + " " + width);
-
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
-
-
-                return false;
-            }
-        };
+        assert prop != null;
+        boolean collect_gif_data = Boolean.parseBoolean(prop.getProperty("collect_gif_data"));
+        boolean collect_converge_data = Boolean.parseBoolean(prop.getProperty("collect_converge_data"));
 
         CMAESOptimizer opt = new CMAESOptimizer(maxIteration, stopFitness, isActiveCMA, diagonalOnly,
                 checkFeasibleCount, new JDKRandomGenerator(), generateStatistics, null);
 
+        if (collect_gif_data) {
+            opt = new CMAESOptimizer(maxIteration, stopFitness, isActiveCMA, diagonalOnly,
+                    checkFeasibleCount, new JDKRandomGenerator(), generateStatistics, checker_for_gif_data);
+        }
+
+        if (collect_converge_data) {
+            opt = new CMAESOptimizer(maxIteration, stopFitness, isActiveCMA, diagonalOnly,
+                    checkFeasibleCount, new JDKRandomGenerator(), generateStatistics, checker_for_convergence_data);
+        }
+
 
         /* find solution */
         long start_time = System.nanoTime();
-        Map<Integer, List<Site[]>> solution = Optimization_param_fixed(opt, dev, Device, x_min, x_max, y_min, y_max, block_num);
+        Map<Integer, List<Site[]>> solution = Optimization(opt, dev, Device, x_min, x_max, y_min, y_max, block_num);
         long end_time = System.nanoTime();
 
         final String s = "CMA-ES Placement Solution Search Time = " + (end_time - start_time) / 1e9
@@ -247,21 +265,15 @@ public class cmaes {
         System.out.println(s);
 
         Utils U = new Utils(solution, Device);
-        double spread = U.getMaxSpread();
+        double size = U.getMaxBBoxSize();
         double wireLength = U.getUnifiedWireLength();
 
-        System.out.println("Spread = " + spread);
-        System.out.println("wire length = " + wireLength);
-
+        System.out.println("size = " + size);
+        System.out.println("wirelength = " + wireLength);
 
         List<Double> fitnessHistory = opt.getStatisticsFitnessHistory();
-        System.out.println("--------------------");
+        System.out.println("----------------------");
         System.out.println("cma search steps = " + fitnessHistory.size());
-        /*for(double d : fitnessHistory)
-            System.out.println(d);*/
-
-        /*String xdc = System.getProperty("RAPIDWRIGHT_PATH")  +
-                "/result/cma_blockNum=" + block_num + ".xdc";*/
         String xdc = System.getProperty("RAPIDWRIGHT_PATH") + "/result/blockNum=" + block_num + ".xdc";
         FileWriter fw = new FileWriter(xdc);
         PrintWriter printWriter = new PrintWriter(fw, true);
@@ -273,13 +285,12 @@ public class cmaes {
 
 
     public static void main(String[] args) throws IOException {
-
+        // main() is used as UnitTest for cma module
         String sens = "/home/niansong/RapidWright/result/cma_sensitivity.txt";
         sensitivity_analysis(sens);
     }
 
-    public static Map<SiteTypeEnum, List<Site[]>> chooseSiteUniform(Map<SiteTypeEnum, List<List<Site>>> allAvailSites, int block_num) {
-
+    public static Map<SiteTypeEnum, List<Site[]>> chooseSiteUniformly(Map<SiteTypeEnum, List<List<Site>>> allAvailSites, int block_num) {
 
         // List<Site[]> each Site[] is a group of physical sites for one group of logical sites
         Map<SiteTypeEnum, List<Site[]>> selected_sites = new HashMap<>();
@@ -318,7 +329,7 @@ public class cmaes {
                 }
 
             } else {
-                // URAM and DSP you can just choose them continuously
+                // URAM and DSP we can just choose them continuously
                 for (List<Site> thisColSite : availSites) {
                     int col_idx = availSites.indexOf(thisColSite);
                     int num = group_num_per_col.get(col_idx);

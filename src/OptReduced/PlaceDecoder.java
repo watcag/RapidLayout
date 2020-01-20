@@ -30,7 +30,7 @@ public class PlaceDecoder implements Decoder<CompositeGenotype<SiteTypeEnum, Gen
         SiteTypeEnum[] siteTypes = new SiteTypeEnum[]{DSP_MAP, BRAM_MAP, URAM_MAP};
         // because each conv block only has one group of URAM so block number is the same as the number of
         // URAM groups in mapping genotype
-        int block_num = ((myGenotype<Integer>) genotype.get(URAM_MAP)).size();
+        int block_num = ((PlaceGenotype<Integer>) genotype.get(URAM_MAP)).size();
 
         /* select physical sites in uniform distribution */
 
@@ -43,7 +43,7 @@ public class PlaceDecoder implements Decoder<CompositeGenotype<SiteTypeEnum, Gen
 
         for (SiteTypeEnum siteType : siteTypes) {
             // available sites for current site type
-            List<List<Site>> availSites = ((myGenotype<Integer>) genotype.get(siteType)).getSites();
+            List<List<Site>> availSites = ((PlaceGenotype<Integer>) genotype.get(siteType)).getSites();
             List<Site[]> selected_sites_for = new ArrayList<>(); // to store chosen sites for this type
             // calculate how many you should choose on each column
             Integer index = Arrays.asList(siteTypes).indexOf(siteType);

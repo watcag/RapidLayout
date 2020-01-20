@@ -1,23 +1,19 @@
 package main;
 
-import Opt.StartOptimization;
-import Utils.Utils;
 import com.xilinx.rapidwright.design.*;
-import com.xilinx.rapidwright.design.Module;
 import com.xilinx.rapidwright.design.blocks.PBlock;
 import com.xilinx.rapidwright.device.*;
-import com.xilinx.rapidwright.edif.*;
-import com.xilinx.rapidwright.util.StringTools;
+import com.xilinx.rapidwright.edif.EDIFCell;
+import com.xilinx.rapidwright.edif.EDIFCellInst;
+import com.xilinx.rapidwright.edif.EDIFNet;
+import com.xilinx.rapidwright.edif.EDIFTools;
 
-import java.util.Arrays;
-import java.util.Collection;
 import java.util.HashSet;
 import java.util.Set;
 
 
 public class PlaceHardBlock {
 
-    private static final String OPMODE_VALUE = "000000101";
 
     // Low-Level Placement Functions
 
@@ -53,23 +49,11 @@ public class PlaceHardBlock {
                 // Since the logical cell instance already exists, we have to separate APIs
                 Cell c = d.createCell(dsp48InstName + EDIFTools.EDIF_HIER_SEP + instName, belInst);
                 d.placeCell(c, origin, elem);
-                //System.out.println("existing DSP children cells at " + dsp48InstName);
             }
 
-           /*// Since the logical cell instance already exists, we have to separate APIs
-            Cell c = d.createCell(dsp48InstName + EDIFTools.EDIF_HIER_SEP + instName, belInst);
-            d.placeCell(c, origin, elem);*/
 
         }
-        // this works but a bit runtime intensive
-        /*SiteInst si = d.getSiteInstFromSite(origin);
-        si.routeSite();
-        Net net = si.getNetFromSiteWire("OPMODE8INV_O");
-        EDIFNet edifnet = net.getLogicalNet();
-        si.routeIntraSiteNet(net, origin.getBELPin("OPMODE8"), origin.getBELPin("DSP_ALU/OPMODE8"));
-        si.routeIntraSiteNet(net, origin.getBELPin("OPMODE7"), origin.getBELPin("DSP_ALU/OPMODE7"));*/
 
-        // ok this might alleviate the run-time problem: we are trying not to call routeSite() every time we place a cell
         SiteInst si = d.getSiteInstFromSite(origin);
         EDIFNet edifNet = dsp48Inst.getParentCell().getNet("acin0_reg_reg_n_0_[0]");
         Net net = d.createNet(edifNet);
@@ -106,8 +90,6 @@ public class PlaceHardBlock {
 
         si.addCell(bramCell);
 
-        //si.routeSite();
-
         PBlock footprint = new PBlock(d.getDevice(), used);
         return footprint;
     }
@@ -125,8 +107,6 @@ public class PlaceHardBlock {
         d.placeCell(uramCell, origin, bel);
 
         si.addCell(uramCell);
-        //si.routeSite();
-
 
         PBlock footprint = new PBlock(d.getDevice(), used);
         return footprint;

@@ -395,6 +395,7 @@ public class Tool {
 
     public static void printParameters() throws IOException {
         Properties prop = getProperties();
+        System.out.println("==================Runtime Parameters====================");
         System.out.println("Using Device: " + prop.getProperty("device"));
         System.out.println("Hard Block Optimization Algorithm: " + prop.getProperty("method"));
         System.out.println("Optimization Process Visualization: " + prop.getProperty("opt_visual"));
@@ -403,10 +404,12 @@ public class Tool {
         System.out.println("Use RapidWright Synthesis (RapidSynth)? " + prop.getProperty("rapidSynth"));
         System.out.println("Use SLR Replication? " + prop.getProperty("SLRCopy"));
         System.out.println("Use automatic pipeline? " + prop.getProperty("autoPipeline"));
-        System.out.println("Pipeline Depth: " + prop.getProperty("pipelineDepth") + " (if auto-pipeline is enabled, this will be ignored");
+        System.out.println("Pipeline Depth: " + prop.getProperty("pipelineDepth") + " (if auto-pipeline is enabled, this will be ignored)");
         System.out.println("Vivado verbose: " + prop.getProperty("vivado_verbose"));
 
         System.out.println("Collect data to make evolution gif? " + prop.getProperty("collect_gif_data"));
         System.out.println("Collect convergence data? " + prop.getProperty("collect_converge_data"));
+        System.out.println("========================================================");
+
     }
 }

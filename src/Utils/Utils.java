@@ -1,6 +1,5 @@
 package Utils;
 
-import com.esotericsoftware.kryo.serializers.CollectionSerializer;
 import com.xilinx.rapidwright.design.Design;
 import com.xilinx.rapidwright.device.*;
 
@@ -44,16 +43,6 @@ public class Utils {
             uramSite.addAll(Arrays.asList(phenotype.get(i).get(2)));
         }
 
-
-/*        // get all available sites
-        Site[] allDSPSites = dev.getAllCompatibleSites(DSP_SITE_TYPE);
-        Site[] allBRAMSites = dev.getAllCompatibleSites(BRAM_SITE_TYPE);
-        Site[] allURAMSites = dev.getAllCompatibleSites(URAM_SITE_TYPE);
-        Collection<Site> available = new ArrayList<>();
-        available.addAll(Arrays.asList(allDSPSites));
-        available.addAll(Arrays.asList(allBRAMSites));
-        available.addAll(Arrays.asList(allURAMSites));*/
-
         // get all used sites
         List<Site> usedSites = new ArrayList<Site>();
         usedSites.addAll(dspSite);
@@ -74,42 +63,6 @@ public class Utils {
         return (x_max-x_min) * (y_max-y_min) / (double)blocknum;
     }
 
-    public double getSumArea(){
-
-        double area = 0;
-
-        // population census
-        Set<Integer> keys = phenotype.keySet();
-        int blocknum = keys.size();
-
-        for (Integer i : keys){
-            List<Site> dspSite = new ArrayList<>();
-            List<Site> bramSite = new ArrayList<>();
-            List<Site> uramSite = new ArrayList<>();
-            dspSite.addAll(Arrays.asList(phenotype.get(i).get(0)));
-            bramSite.addAll(Arrays.asList(phenotype.get(i).get(1)));
-            uramSite.addAll(Arrays.asList(phenotype.get(i).get(2)));
-            // get all used sites
-            List<Site> usedSites = new ArrayList<Site>();
-            usedSites.addAll(dspSite);
-            usedSites.addAll(bramSite);
-            usedSites.addAll(uramSite);
-            // get bounding rectangular area
-            int x_min = Integer.MAX_VALUE; int x_max = 0; int y_min = Integer.MAX_VALUE; int y_max = 0;
-            for (Site s : usedSites){
-                int x = s.getRpmX();
-                int y = s.getRpmY();
-                if (x < x_min) x_min = x;
-                if (x > x_max) x_max = x;
-                if (y < y_min) y_min = y;
-                if (y > y_max) y_max = y;
-            }
-
-            area += (x_max-x_min) * (y_max-y_min);
-        }
-
-        return area / blocknum;
-    }
 
     public double getUnifiedWireLength(){
         double wireLength = 0;

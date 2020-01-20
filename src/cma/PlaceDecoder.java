@@ -1,51 +1,16 @@
 package cma;
 
 
-import OptReduced.myGenotype;
 import com.xilinx.rapidwright.device.Site;
 import com.xilinx.rapidwright.device.SiteTypeEnum;
-import org.opt4j.core.Genotype;
-import org.opt4j.core.genotype.CompositeGenotype;
-import org.python.netty.util.Mapping;
 
 import java.util.*;
 
 public class PlaceDecoder {
-    private static int n_dsp = 9;
-    private static int n_bram = 4;
-    private static int n_uram = 2;
+
     private static final SiteTypeEnum DSP_MAP = SiteTypeEnum.SLICEL;
     private static final SiteTypeEnum BRAM_MAP = SiteTypeEnum.BUFG;
     private static final SiteTypeEnum URAM_MAP = SiteTypeEnum.LAGUNA;
-
-    public static List<Integer[]> decodeGenotype(double[] doubles) {
-        // List = {dsp, bram, uram} 2:2:1
-        /* One double array should be converted to 3 integer arrays,
-        *  and this conversion should be valid for CMA-ES evolution */
-        int block_num = doubles.length / 5;
-        Integer[] all_idx = getSortIndex(doubles);
-
-        List<Integer[]> result = new ArrayList<>();
-
-        List<Integer> dsp = new ArrayList<>();
-        List<Integer> bram = new ArrayList<>();
-        List<Integer> uram = new ArrayList<>();
-
-        for (Integer integer : all_idx) {
-            if (integer < 2 * block_num)
-                dsp.add(integer);
-            else if (integer < 4 * block_num)
-                bram.add(integer - 2 * block_num);
-            else
-                uram.add(integer - 4 * block_num);
-        }
-
-        result.add(dsp.toArray(new Integer[0]));
-        result.add(bram.toArray(new Integer[0]));
-        result.add(uram.toArray(new Integer[0]));
-
-        return result;
-    }
 
     public static Map<Integer, List<Site[]>> Mapping(int block_num, Map<SiteTypeEnum, List<Site[]>> chosenSites, Integer[] dsp, Integer[] bram, Integer[] uram) {
         Map<Integer, List<Site[]>> map = new HashMap<>(); // stores the final configuration for each block
@@ -80,11 +45,6 @@ public class PlaceDecoder {
         Integer[] dsp = getSortIndex(Arrays.copyOfRange(doubles, 0, 2 *  block_num));
         Integer[] bram = getSortIndex(Arrays.copyOfRange(doubles, 2 * block_num, 4 *  block_num));
         Integer[] uram = getSortIndex(Arrays.copyOfRange(doubles, 4 * block_num, 5 *  block_num));
-
-        /*List<Integer[]> decoded = decodeGenotype(doubles);
-        Integer[] dsp = decoded.get(0);
-        Integer[] bram = decoded.get(1);
-        Integer[] uram = decoded.get(2);*/
 
         return Mapping(block_num, selected_sites, dsp, bram, uram);
     }
@@ -130,13 +90,6 @@ public class PlaceDecoder {
             return Double.compare(array[index1], array[index2]);
         }
     }
-
-
-
-    /*public static Map<Integer, List<Site[]>> decode2 (double[] doubles, Map<SiteTypeEnum, List<List<Site>>> allAvailSites){
-
-    }*/
-
 
 
 

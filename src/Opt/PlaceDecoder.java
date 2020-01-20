@@ -37,14 +37,14 @@ public class PlaceDecoder implements Decoder<CompositeGenotype<SiteTypeEnum, Gen
     final SiteTypeEnum URAM_MAP = SiteTypeEnum.LAGUNA;
 
     public Map<Integer, List<Site[]>> decode(CompositeGenotype<SiteTypeEnum, Genotype> genotype) {
-        myGenotype<Site> dspColNums = genotype.get(DSP_SITE_TYPE);
-        myGenotype<Site> bramColNums = genotype.get(BRAM_SITE_TYPE);
-        myGenotype<Site> uramColNums = genotype.get(URAM_SITE_TYPE);
+        PlaceGenotype<Site> dspColNums = genotype.get(DSP_SITE_TYPE);
+        PlaceGenotype<Site> bramColNums = genotype.get(BRAM_SITE_TYPE);
+        PlaceGenotype<Site> uramColNums = genotype.get(URAM_SITE_TYPE);
         List<Integer> n = new ArrayList<>();
         n.add(n_dsp);
         n.add(n_bram);
         n.add(n_uram);
-        List<myGenotype<Site>> genotypes = new ArrayList<>();
+        List<PlaceGenotype<Site>> genotypes = new ArrayList<>();
         genotypes.add(dspColNums);
         genotypes.add(bramColNums);
         genotypes.add(uramColNums);
@@ -53,10 +53,10 @@ public class PlaceDecoder implements Decoder<CompositeGenotype<SiteTypeEnum, Gen
         int block_num = ((PermutationGenotype<Integer>) genotype.get(URAM_MAP)).size();
 
         // Decode Column Distribution: how many blocks at each column
-        Map<myGenotype<Site>, List<Integer>> col_config = new HashMap<>();
+        Map<PlaceGenotype<Site>, List<Integer>> col_config = new HashMap<>();
         for (int gene_index = 0; gene_index < 3; gene_index++) {
             int group_num = gene_index < 2 ? block_num * 2 : block_num;
-            myGenotype<Site> gene = genotypes.get(gene_index);
+            PlaceGenotype<Site> gene = genotypes.get(gene_index);
             List<List<Site>> available = gene.getSites();
             // calc max blocks in one column
             int max_blocks = available.get(0).size() / n.get(gene_index);
@@ -135,9 +135,9 @@ public class PlaceDecoder implements Decoder<CompositeGenotype<SiteTypeEnum, Gen
         SiteTypeEnum[] types = new SiteTypeEnum[]{DSP_SITE_TYPE, BRAM_SITE_TYPE, URAM_SITE_TYPE};
         SiteTypeEnum[] loc_keys = new SiteTypeEnum[]{DSP_LOC, BRAM_LOC, URAM_LOC};
         List[] allSites = new List[]{
-                ((myGenotype<Site>) genotype.get(DSP_SITE_TYPE)).getSites(),
-                ((myGenotype<Site>) genotype.get(BRAM_SITE_TYPE)).getSites(),
-                ((myGenotype<Site>) genotype.get(URAM_SITE_TYPE)).getSites()};
+                ((PlaceGenotype<Site>) genotype.get(DSP_SITE_TYPE)).getSites(),
+                ((PlaceGenotype<Site>) genotype.get(BRAM_SITE_TYPE)).getSites(),
+                ((PlaceGenotype<Site>) genotype.get(URAM_SITE_TYPE)).getSites()};
         // the map to keep selected sites
         Map<SiteTypeEnum, List<Site[]>> map = new HashMap<>();
         // traverse through each type

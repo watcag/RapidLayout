@@ -88,9 +88,9 @@ public class PlaceCreator implements Creator<CompositeGenotype<SiteTypeEnum, Gen
 
         CompositeGenotype<SiteTypeEnum, Genotype> genotype = new CompositeGenotype<>();
         // distribution
-        myGenotype<Site> dspColNum = new myGenotype<>(map.get(DSP_SITE_TYPE));
-        myGenotype<Site> bramColNum = new myGenotype<>(map.get(BRAM_SITE_TYPE));
-        myGenotype<Site> uramColNum = new myGenotype<>(map.get(URAM_SITE_TYPE));
+        PlaceGenotype<Site> dspColNum = new PlaceGenotype<>(map.get(DSP_SITE_TYPE));
+        PlaceGenotype<Site> bramColNum = new PlaceGenotype<>(map.get(BRAM_SITE_TYPE));
+        PlaceGenotype<Site> uramColNum = new PlaceGenotype<>(map.get(URAM_SITE_TYPE));
         // location
         DoubleGenotype dspLoc = new DoubleGenotype();
         DoubleGenotype bramLoc = new DoubleGenotype();

@@ -143,7 +143,7 @@ public class AutoPlacement {
         Device device = U.getDevice();
         int[] height = U.getHeight();
         int num_repl = U.getURAMColHeight() / height[2];
-        System.out.println("------- Replicate " + num_repl + " times");
+        System.out.println("------- Replicate Placement " + num_repl + " times --------");
 
         String[] prefix = new String[]{"DSP48E2_", "RAMB18_", "URAM288_"};
         int key = original.size() - 1;
@@ -173,7 +173,7 @@ public class AutoPlacement {
         Utils U = new Utils(original, dev);
         Device device = U.getDevice();
         int[] height = U.getHeight();
-        System.out.println("------- Replicate " + num_repl + " times");
+        System.out.println("------- Replicate Placement " + num_repl + " times --------");
 
         String[] prefix = new String[]{"DSP48E2_", "RAMB18_", "URAM288_"};
         int key = original.size() - 1;
