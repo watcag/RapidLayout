@@ -52,7 +52,7 @@ public class Vivado {
         return design;
     }
 
-    public static Design synthesize_vivado(int block_num, String part, boolean verbose){
+    public static Design synthesize_vivado(int block_num, String part, int depth, boolean verbose){
         String tcl_path = tcl + "synth.tcl";
         String output_path = checkpoint + "blockNum=" + block_num;
         File checkpoint = new File(output_path+".dcp");
@@ -65,7 +65,7 @@ public class Vivado {
             PrintWriter printWriter = new PrintWriter(write, true);
             printWriter.println("read_verilog ../verilog/addr_gen.v ../verilog/dsp_conv.v ../verilog/dsp_conv_top.v ../verilog/dsp_conv_chip.sv");
             printWriter.println("set_property generic Y=" + block_num + " [current_fileset]");
-            //printWriter.println("set_property generic NUMBER_OF_REG=" + depth + " [current_fileset]");
+            printWriter.println("set_property generic NUMBER_OF_REG=" + depth + " [current_fileset]");
             printWriter.println("synth_design -mode out_of_context -part "+ part +" -top dsp_conv_chip;");
             printWriter.println("write_checkpoint -force -file " + output_path + ".dcp");
             printWriter.println("write_edif -force -file " + output_path + ".edf");

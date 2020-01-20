@@ -62,6 +62,7 @@ module dsp_conv#(
     reg [2:0] ce_tmp_r5;
     reg [2:0] ce_tmp_r6;
     reg [2:0] ce_tmp_r7;
+    reg [2:0] ce_tmp_r8;
     reg [2:0] ce_a0;
     reg [2:0] ce_a0_r1;
     reg [2:0] ce_a0_r2;

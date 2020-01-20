@@ -268,7 +268,7 @@ public class AutoPlacement {
         if (rapidSynth)
             d = Vivado.synthesize_with_seed(blocknum, device, part, false, vivado_verbose);
         else
-            d = Vivado.synthesize_vivado(blocknum, part, vivado_verbose);
+            d = Vivado.synthesize_vivado(blocknum, part, 0, vivado_verbose);
         d.setAutoIOBuffers(false); // out of context mode
         System.out.println("synthesis finished");
 
@@ -372,7 +372,7 @@ public class AutoPlacement {
         pr.close();
 
         /* synthesize one SLR */
-        Design d = Vivado.synthesize_vivado(blocknum, part, vivado_verbose);
+        Design d = Vivado.synthesize_vivado(blocknum, part, 0, vivado_verbose);
         System.out.println("One SLR synthesis finished.");
 
         /* placement and site-routing */

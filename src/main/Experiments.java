@@ -110,7 +110,7 @@ public class Experiments {
         System.out.println("Printed xdc file: " + xdc);
 
         // Synthesis
-        Design design = Vivado.synthesize_vivado(480, part, true);
+        Design design = Vivado.synthesize_vivado(480, part,0, true);
 
         // Pipeline
         AutoPipeline.rapidsynth_autopipeline(design, placement);
@@ -166,7 +166,7 @@ public class Experiments {
         pr.close();
 
         // synth
-        Design d = Vivado.synthesize_vivado(blocknum, part, true);
+        Design d = Vivado.synthesize_vivado(blocknum, part,0, true);
         System.out.println("synthesis finished");
 
         // placement & site-routing
@@ -385,7 +385,7 @@ public class Experiments {
         pr.close();
 
         // synth
-        Design d = Vivado.synthesize_vivado(blocknum, part, true);
+        Design d = Vivado.synthesize_vivado(blocknum, part,0, true);
         System.out.println("synthesis finished");
 
         // placement & site-routing
@@ -424,13 +424,7 @@ public class Experiments {
         String device = "xcvu11p";
         String part = new Design("name", device).getPartName();
         int blockn = 1;
-
-        // set up output log
-        String logPath = System.getProperty("RAPIDWRIGHT_PATH") + "/log.txt";
-        FileWriter fileWriter = new FileWriter(logPath);
-        PrintWriter log = new PrintWriter(fileWriter, true);
-
-        Vivado.synthesize_vivado(blockn, part, true);
+        Vivado.synthesize_vivado(blockn, part, 0, true);
     }
 
 
@@ -574,7 +568,7 @@ public class Experiments {
 //        Tool.write_XDC(result, pw);
 
 
-
+        clean_pipeline();
 
 
     }

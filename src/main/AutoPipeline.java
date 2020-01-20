@@ -338,7 +338,7 @@ public class AutoPipeline {
 
         int blockNum = 2;
 
-        Design d = Vivado.synthesize_vivado(blockNum, part, true);
+        Design d = Vivado.synthesize_vivado(blockNum, part, 0, true);
 
         String[] srcEDIFCells = new String[]{
                 "name[block].dut/conv1/bram_inst_rdc1","name[block].dut/conv2/bram_inst_rdc1",
