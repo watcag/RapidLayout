@@ -337,9 +337,6 @@ public class Experiments {
     }
 
 
-
-
-
     public static void replicate_SLR() throws IOException {
 
         System.out.println("We do'in SLR replication");
@@ -533,19 +530,6 @@ public class Experiments {
         }
     }
 
-    public static void readConfig() throws  IOException {
-        // try to read config
-        Properties prop = new Properties();
-        String propFileName = System.getProperty("RAPIDWRIGHT_PATH") + "/config.properties";
-        InputStream inputStream = new FileInputStream(propFileName);
-        prop.load(inputStream);
-
-        String xmin = prop.getProperty("xmin");
-        String device = prop.getProperty("device");
-
-        System.out.println("xmin = " + xmin + " device = " + device);
-    }
-
 
     public static void main(String[] args) throws IOException {
 
@@ -591,7 +575,7 @@ public class Experiments {
 
 
 
-        readConfig();
+
 
     }
 

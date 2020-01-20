@@ -409,6 +409,7 @@ public class AutoPlacement {
                 + " s, which is " + (end_time - start_time) / 1e9 / 60 + " min";
         System.out.println(s);
         System.out.println(">>>-----------------------------------------------");
+        full_chip_routed.flattenDesign();
         full_chip_routed.writeCheckpoint(checkpoint + "full-chip_" + device + ".dcp");
 
         // TODO: add timing module for replicated SLR

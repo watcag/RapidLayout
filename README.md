@@ -40,6 +40,8 @@ be found [here](https://gradle.org/install/#manually). Also make sure to add `$(
 - Then, we set up few other environment variables:
    * Configure RapidWright Path: 
    ```export RAPIDWRIGHT_PATH=<THE_REPO_PATH>```
+   * Configure Vivado Path:
+   `export VIVADO_PATH=PATH_TO_VIVADO/bin` e.g. `export VIVADO_PATH=/Vivado/2018.3/bin`
    * Add compiled Java files and jars to `CLASSPATH` variable: 
    
    ```export CLASSPATH=$RAPIDWRIGHT_PATH/bin:$(echo $RAPIDWRIGHT_PATH/jars/*.jar | tr ' ' ':')```

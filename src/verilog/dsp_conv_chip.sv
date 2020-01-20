@@ -8,7 +8,7 @@ module dsp_conv_chip #(
 	parameter URAM_D_W = 72,
 	parameter URAM_A_W = 23,
     parameter Y = 480,
-    parameter NUMBER_OF_REGISTER = 1
+    parameter NUMBER_OF_REG= 1
 )
 (
 input clk,
@@ -52,7 +52,7 @@ generate for (y = 0; y < Y; y = y + 1) begin : name
 	,.D_W      (D_W)
         ,.CASCADE_ORDER_A_RDURAM ("FIRST")
         ,.CASCADE_ORDER_A_WRURAM ("LAST")
-        ,.NUMBER_OF_REG (NUMBER_OF_REGISTER)
+        ,.NUMBER_OF_REG (NUMBER_OF_REG)
 	,.URAM_D_W (URAM_D_W)
 	,.URAM_A_W (URAM_A_W)
   )

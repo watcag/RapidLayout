@@ -80,7 +80,9 @@ reg [$clog2(NO_ITR_W):0] rem_img_sz_w;
 reg [$clog2(NO_ITR_D):0] rem_img_sz_d;
 reg [URAM_D_W-1:0]       uram_rd_data_r; 
 reg [URAM_D_W-1:0]       uram_rd_data_r1; 
-reg [URAM_D_W-1:0]       uram_rd_data_r2; 
+reg [URAM_D_W-1:0]       uram_rd_data_r2;
+reg [URAM_D_W-1:0]       uram_rd_data_r3;
+reg [URAM_D_W-1:0]       uram_rd_data_r4;
 reg                      ce_dsp;
 reg                      pc_o_valid_tmp;
 reg                      pc_o_valid_tmp_r;
@@ -104,6 +106,9 @@ reg                      pc_o_valid_tmp_r18;
 reg                      pc_o_valid_tmp_r19;
 reg                      pc_o_valid_tmp_r20;
 reg                      pc_o_valid_tmp_r21;
+reg                      pc_o_valid_tmp_r22;
+reg                      pc_o_valid_tmp_r23;
+reg                      pc_o_valid_tmp_r24;
 reg [A_W-1:0]            rdaddr_b;
 reg                      uram2_wr_en;
 reg                      data_valid;
@@ -244,26 +249,43 @@ end
 
 
 ///////////////////////////////// optinal register /////////////////
-generate if (NUMBER_OF_REG == 1) begin : option_1
+generate if (NUMBER_OF_REG == 0) begin : option_0
   always@(posedge clk) begin
     uram_rd_data_r <= uram_rd_data;
   end
 end endgenerate
 
-generate if (NUMBER_OF_REG == 2) begin : option_2
+generate if (NUMBER_OF_REG == 1) begin : option_1
   always@(posedge clk) begin
     uram_rd_data_r1 <= uram_rd_data;
     uram_rd_data_r  <= uram_rd_data_r1;
   end
 end endgenerate
 
-generate if (NUMBER_OF_REG == 3) begin : option_3
+generate if (NUMBER_OF_REG == 2) begin : option_2
   always@(posedge clk) begin
     uram_rd_data_r1 <= uram_rd_data;
     uram_rd_data_r2 <= uram_rd_data_r1;
     uram_rd_data_r  <= uram_rd_data_r2;
   end
 end endgenerate
+    generate if (NUMBER_OF_REG == 3) begin : option_3
+        always@(posedge clk) begin
+            uram_rd_data_r1 <= uram_rd_data;
+            uram_rd_data_r2 <= uram_rd_data_r1;
+            uram_rd_data_r3 <= uram_rd_data_r2;
+            uram_rd_data_r  <= uram_rd_data_r3;
+        end
+    end endgenerate
+    generate if (NUMBER_OF_REG == 4) begin : option_4
+        always@(posedge clk) begin
+            uram_rd_data_r1 <= uram_rd_data;
+            uram_rd_data_r2 <= uram_rd_data_r1;
+            uram_rd_data_r3 <= uram_rd_data_r2;
+            uram_rd_data_r4 <= uram_rd_data_r3;
+            uram_rd_data_r  <= uram_rd_data_r4;
+        end
+    end endgenerate
 ////////////////////////////////////////////////////////////////////
 //URAM instantiation RD
 // image ram
@@ -398,7 +420,7 @@ always@(posedge clk) begin
   end
 end
 
-generate if (NUMBER_OF_REG == 1) begin : wr_en1
+generate if (NUMBER_OF_REG == 0) begin : wr_en0
   always@(posedge clk) begin
     if (rst) begin
       data_valid <= 1'b0;
@@ -408,7 +430,7 @@ generate if (NUMBER_OF_REG == 1) begin : wr_en1
   end
 end endgenerate
 
-generate if (NUMBER_OF_REG == 2) begin : wr_en2
+generate if (NUMBER_OF_REG == 1) begin : wr_en1
   always@(posedge clk) begin
     if (rst) begin
       pc_o_valid_tmp_r17 <= 1'b0;
@@ -422,13 +444,14 @@ generate if (NUMBER_OF_REG == 2) begin : wr_en2
   end
 end endgenerate
 
-generate if (NUMBER_OF_REG == 3) begin : wr_en3
+generate if (NUMBER_OF_REG == 2) begin : wr_en2
   always@(posedge clk) begin
     if (rst) begin
       pc_o_valid_tmp_r17 <= 1'b0;
       pc_o_valid_tmp_r18 <= 1'b0;
       pc_o_valid_tmp_r19 <= 1'b0;
-      data_valid        <= 1'b0;
+        pc_o_valid_tmp_r20 <= 1'b0;
+        data_valid        <= 1'b0;
     end else begin
       pc_o_valid_tmp_r17 <= pc_o_valid_tmp_r16;
       pc_o_valid_tmp_r18 <= pc_o_valid_tmp_r17;
@@ -438,6 +461,54 @@ generate if (NUMBER_OF_REG == 3) begin : wr_en3
     end
   end
 end endgenerate
+
+    generate if (NUMBER_OF_REG == 3) begin : wr_en3
+        always@(posedge clk) begin
+            if (rst) begin
+                pc_o_valid_tmp_r17 <= 1'b0;
+                pc_o_valid_tmp_r18 <= 1'b0;
+                pc_o_valid_tmp_r19 <= 1'b0;
+                pc_o_valid_tmp_r20 <= 1'b0;
+                pc_o_valid_tmp_r21 <= 1'b0;
+                pc_o_valid_tmp_r22 <= 1'b0;
+                data_valid        <= 1'b0;
+            end else begin
+                pc_o_valid_tmp_r17 <= pc_o_valid_tmp_r16;
+                pc_o_valid_tmp_r18 <= pc_o_valid_tmp_r17;
+                pc_o_valid_tmp_r19 <= pc_o_valid_tmp_r18;
+                pc_o_valid_tmp_r20 <= pc_o_valid_tmp_r19;
+                pc_o_valid_tmp_r21 <= pc_o_valid_tmp_r20;
+                pc_o_valid_tmp_r22 <= pc_o_valid_tmp_r21;
+                data_valid        <= pc_o_valid_tmp_r21;
+            end
+        end
+    end endgenerate
+
+    generate if (NUMBER_OF_REG == 4) begin : wr_en4
+        always@(posedge clk) begin
+            if (rst) begin
+                pc_o_valid_tmp_r17 <= 1'b0;
+                pc_o_valid_tmp_r18 <= 1'b0;
+                pc_o_valid_tmp_r19 <= 1'b0;
+                pc_o_valid_tmp_r20 <= 1'b0;
+                pc_o_valid_tmp_r21 <= 1'b0;
+                pc_o_valid_tmp_r22 <= 1'b0;
+                pc_o_valid_tmp_r23 <= 1'b0;
+                pc_o_valid_tmp_r24 <= 1'b0;
+                data_valid        <= 1'b0;
+            end else begin
+                pc_o_valid_tmp_r17 <= pc_o_valid_tmp_r16;
+                pc_o_valid_tmp_r18 <= pc_o_valid_tmp_r17;
+                pc_o_valid_tmp_r19 <= pc_o_valid_tmp_r18;
+                pc_o_valid_tmp_r20 <= pc_o_valid_tmp_r19;
+                pc_o_valid_tmp_r21 <= pc_o_valid_tmp_r20;
+                pc_o_valid_tmp_r22 <= pc_o_valid_tmp_r21;
+                pc_o_valid_tmp_r23 <= pc_o_valid_tmp_r22;
+                pc_o_valid_tmp_r24 <= pc_o_valid_tmp_r23;
+                data_valid        <= pc_o_valid_tmp_r24;
+            end
+        end
+    end endgenerate
 
 always@(posedge clk) begin
   if (rst) data_valid_tog <= 1'b0;
@@ -619,4 +690,4 @@ conv2 (
    ,.data_out   (data_out_conv2)
 );
 
-endmodule
+endmodule : dsp_conv_top
