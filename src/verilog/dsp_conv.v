@@ -202,7 +202,7 @@ module dsp_conv#(
         end
     end endgenerate
 
-    generate if (NUMBER_OF_REG == 4) begin : a0k0_3
+    generate if (NUMBER_OF_REG == 4) begin : a0k0_4
         always @(posedge clk) begin
             dsp_a0_1 <= dsp_a0;
             dsp_k0_1 <= dsp_k0;

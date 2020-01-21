@@ -64,8 +64,7 @@ public class Vivado {
         try (FileWriter write = new FileWriter(tcl_path)) {
             PrintWriter printWriter = new PrintWriter(write, true);
             printWriter.println("read_verilog ../verilog/addr_gen.v ../verilog/dsp_conv.v ../verilog/dsp_conv_top.v ../verilog/dsp_conv_chip.sv");
-            printWriter.println("set_property generic Y=" + block_num + " [current_fileset]");
-            printWriter.println("set_property generic NUMBER_OF_REG=" + depth + " [current_fileset]");
+            printWriter.println("set_property generic {NUMBER_OF_REG=" + depth + " Y="+block_num+"} [current_fileset]");
             printWriter.println("synth_design -mode out_of_context -part "+ part +" -top dsp_conv_chip;");
             printWriter.println("write_checkpoint -force -file " + output_path + ".dcp");
             printWriter.println("write_edif -force -file " + output_path + ".edf");
@@ -94,7 +93,8 @@ public class Vivado {
         try (FileWriter write = new FileWriter(tcl_path)) {
             PrintWriter printWriter = new PrintWriter(write, true);
             printWriter.println("read_verilog ../src/verilog/addr_gen.v ../src/verilog/dsp_conv.v ../src/verilog/dsp_conv_top.v ../src/verilog/dsp_conv_chip.sv");
-            printWriter.println("set_property generic Y=" + 1 + " [current_fileset]");
+            printWriter.println("set_property generic {Y=" + 1 + "} [current_fileset]");
+            //printWriter.println("set_property generic {NUMBER_OF_REG=" + depth + "} [current_fileset]");
             printWriter.println("synth_design -mode out_of_context -part "+ part +" -top dsp_conv_chip;");
             printWriter.println("write_checkpoint -force -file " + output_path + ".dcp");
             printWriter.println("write_edif -force -file " + output_path + ".edf");
