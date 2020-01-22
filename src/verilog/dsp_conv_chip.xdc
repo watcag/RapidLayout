@@ -1,4 +1,4 @@
-create_clock -period 1.500 -waveform {0.000 0.750} [get_nets clk];
+# create_clock -period 1.500 -waveform {0.000 0.750} [get_nets clk];
 
 # 0 in 2 loop
 # 0, 0, 0, 0, 0
