@@ -54,8 +54,23 @@ gradle build -p $RAPIDWRIGHT_PATH
 ```
 
 ### Run
+RapidLayout's work flow is configured with `config.properties` file in the project
+root folder. The parameters are illustrated as follows.
 
-//TODO
+- `device`: `vu11p`, `vu13p` are tested for now.
+- `method`: method can be `CMA`, `EA`, `EA-reduced`,or `SA`, standing for 
+CMA-ES, NSGA-II, NSGA-II with reduced genotype, and Simulated Annealing.
+- `optimization`: `true` or `false`. Whether to rerun the placement search process. 
+When turned `false`, it will seek for a solution `xdc` file in the `result` folder.
+- `rapidSynth=true`
+- `SLRCopy=true`
+- `autoPipeline=true`
+- `pipelineDepth=4`
+- `vivado_verbose=true`
+- `opt_visual=false`
+- `matplotlib_visual=false`
+- `collect_gif_data=false`
+- `collect_converge_data=false`
 
 
 
