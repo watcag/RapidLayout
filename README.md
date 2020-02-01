@@ -59,19 +59,29 @@ root folder. The parameters are illustrated as follows.
 
 - `device`: `vu11p`, `vu13p` are tested for now.
 - `method`: method can be `CMA`, `EA`, `EA-reduced`,or `SA`, standing for 
-CMA-ES, NSGA-II, NSGA-II with reduced genotype, and Simulated Annealing.
+CMA-ES, NSGA-II, NSGA-II with reduced genotype, and Simulated Annealing respectively.
 - `optimization`: `true` or `false`. Whether to rerun the placement search process. 
 When turned `false`, it will seek for a solution `xdc` file in the `result` folder.
-- `rapidSynth=true`
-- `SLRCopy=true`
-- `autoPipeline=true`
-- `pipelineDepth=4`
-- `vivado_verbose=true`
-- `opt_visual=false`
-- `matplotlib_visual=false`
-- `collect_gif_data=false`
-- `collect_converge_data=false`
-
+- `rapidSynth`: `true` or `false`. RapidSynth saves synthesis time by replicating 
+conv unit's Netlist. If enabled, only 1 conv block will be synthesized by Vivado,
+and the rest will be replicated from it. Otherwise, all conv units will be synthesized 
+by Vivado and no replication will happen.
+- `SLRCopy`： `true` or `false`. If enabled, only one SLR will be routed by Vivado, then
+ the other SLRs' routed physical netlist will be copied from it. SLR copying accelerates
+ runtime by 5x-6x. 
+- `autoPipeline`: `true` or `false`. If enabled, `pipelineDepth` will be ignored, and pipeline
+depth for each data path will be determined by RapidLayout.
+- `pipelineDepth`: integer, e.g. `4`. Effective only when `autoPipeline` is disabled. All
+datapath will be pipelined with the specifed depth.
+- `vivado_verbose`: `true` or `false`. Whether to print Vivado output information.
+- `opt_visual`: `true` or `false`. Whether to display real-time visualization of objectives. 
+This function is currently not available for CMA-ES. 
+- `matplotlib_visual`: `true` or `false`. Whether to draw placement visualization for 
+optimization results. 
+- `collect_gif_data`: `true` or `false`. Collect placement evolutionary data to visualize
+the evolving process for current method.
+- `collect_converge_data`: `true` or `false`. Collect objective data of each iteration
+for visualization.
 
 
 
