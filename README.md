@@ -53,7 +53,7 @@ We build the Java project with gradle build:
 gradle build -p $RAPIDWRIGHT_PATH
 ```
 
-### Run
+### Configuration
 RapidLayout's work flow is configured with `config.properties` file in the project
 root folder. The parameters are illustrated as follows.
 
@@ -83,7 +83,12 @@ the evolving process for current method.
 - `collect_converge_data`: `true` or `false`. Collect objective data of each iteration
 for visualization.
 
+### Run
 
+To run the complete workflow, go to project root folder, then run:
+```bash
+    java -Xmx80G main.AutoPlacement
+```
 
 ### License
 This tool is distributed under MIT license.

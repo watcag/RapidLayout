@@ -412,8 +412,8 @@ public class AutoPlacement {
         full_chip_routed.flattenDesign();
         full_chip_routed.writeCheckpoint(checkpoint + "full-chip_" + device + ".dcp");
 
-        // TODO: add timing module for replicated SLR
-
+        /* post implementation timing */
+        Vivado.post_impl_retiming(checkpoint + "full-chip_" + device + ".dcp");
     }
 
     public static void main(String[] args) throws IOException {

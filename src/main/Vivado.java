@@ -303,4 +303,27 @@ public class Vivado {
 
         return frequency;
     }
+
+    public static double post_impl_retiming(String implementedDesign) throws IOException {
+        String tcl_path = tcl + "retiming.tcl";
+        // write tcl script
+        try (FileWriter write = new FileWriter(tcl_path)) {
+            PrintWriter printWriter = new PrintWriter(write, true);
+            printWriter.println("open_checkpoint " + implementedDesign);
+            printWriter.println("create_clock -period 1.000 -waveform {0.000 0.500} [get_nets clk];");
+            printWriter.println("report_timing");
+            printWriter.println("exit");
+            printWriter.close();
+        }
+
+        String slack = Vivado.vivado_cmd("vivado -mode tcl -source " + tcl_path, false);
+
+        double violation = Double.parseDouble(slack.substring(slack.indexOf("-"), slack.indexOf("ns")));
+        double clk_period = 1 - violation;
+        double frequency = 1e9 / clk_period;
+
+        System.out.println("$$$$ frequency =  " + frequency/1e6 + " MHz");
+
+        return frequency;
+    }
 }
