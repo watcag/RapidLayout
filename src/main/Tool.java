@@ -398,9 +398,9 @@ public class Tool {
             mi.setCellInst(ci);
 
             ArrayList<Net> nets = mi.getNets();
-//            for (Net net : nets)
-//                if (net.getName().equals("clk"))
-//                    net.getLogicalNet().createPortInst(clkPort);
+            for (Net net : nets)
+                if (net.getName().equals("clk"))
+                    net.getLogicalNet().createPortInst(clkPort);
             System.out.println("SLR Replication: placing SLR " + allValidPlacement.indexOf(anchor));
             mi.place(anchor);
         }
