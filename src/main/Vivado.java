@@ -316,7 +316,7 @@ public class Vivado {
             printWriter.close();
         }
 
-        String slack = Vivado.vivado_cmd("vivado -mode tcl -source " + tcl_path, false);
+        String slack = Vivado.vivado_cmd("vivado -mode tcl -source " + tcl_path, true);
 
         double violation = Double.parseDouble(slack.substring(slack.indexOf("-"), slack.indexOf("ns")));
         double clk_period = 1 - violation;

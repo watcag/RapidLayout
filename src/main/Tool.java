@@ -356,18 +356,18 @@ public class Tool {
     }
 
     public static void matplot_visualize(String result_xdc){
-        String python_script = System.getProperty("user.home") + "/RapidWright/src/visualize/main.py";
+        String python_script = System.getenv("RAPIDWRIGHT_PATH") + "/src/visualize/main.py";
         String cmd = "python3 " + python_script + " " + result_xdc;
-        execute_cmd(cmd);
-
+        try{
+            execute_cmd(cmd);
+        } catch (Exception ignored){}
     }
-
 
     public static Design replicateSLR(String routedSLR){
 
         Design d = Design.readCheckpoint(routedSLR);
 
-        Design design = new Design("new", d.getPartName());
+        Design design = new Design("SLRCopy", d.getPartName());
         design.setAutoIOBuffers(false);
 
         Module module = new Module(d);
@@ -384,11 +384,31 @@ public class Tool {
 
         ArrayList<Site> allValidPlacement = module.calculateAllValidPlacements(d.getDevice());
 
+        // create global clock port
+        EDIFPort clkPort = design.getTopEDIFCell().createPort("clk", EDIFDirection.INPUT, 1);
+        EDIFCell top = design.getTopEDIFCell();
+        System.out.println("top name = " + top.getName());
+        System.out.println("top legalEDIFName = " + top.getLegalEDIFName());
+
+        System.out.println("SLR Replication: start...");
         for(Site anchor : allValidPlacement){
+            EDIFCellInst ci = top.createChildCellInst(allValidPlacement.indexOf(anchor) + "_moduleInst", d.getTopEDIFCell());
             ModuleInst mi = design.createModuleInst(allValidPlacement.indexOf(anchor) + "_moduleInst", module);
-            design.addModuleInstNetlist(mi, module.getNetlist());
+            //design.addModuleInstNetlist(mi, module.getNetlist());
+            mi.setCellInst(ci);
+
+            ArrayList<Net> nets = mi.getNets();
+//            for (Net net : nets)
+//                if (net.getName().equals("clk"))
+//                    net.getLogicalNet().createPortInst(clkPort);
+            System.out.println("SLR Replication: placing SLR " + allValidPlacement.indexOf(anchor));
             mi.place(anchor);
         }
+
+        System.out.println("SLR Replication: done");
+
+        //design.flattenDesign();
+
 
         return design;
     }
