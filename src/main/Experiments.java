@@ -546,57 +546,57 @@ public class Experiments {
 
 
         /*  --- find placement solution --- */
-        Map<Integer, List<Site[]>> result = new HashMap<>();
-        String xdc_result = results + "blockNum=" + blocknum + ".xdc";
-
-
-        FileWriter fw = new FileWriter(xdc_result);
-        PrintWriter pw = new PrintWriter(fw, true);
-        result = main.AutoPlacement.find_solution(
-                method, blocknum, visualization, device,
-                population, parents, children, crossoverR,
-                x_min, x_max, y_min, y_max);
-
-        Tool.write_XDC(result, pw);
-        pw.close();
-
-        System.out.println("Found Placement Strategy for " + result.size() + " blocks of convolution units");
-
-        /* synthesize one SLR */
-        Design d = Vivado.synthesize_vivado(blocknum, part, 0, vivado_verbose);
-        System.out.println("One SLR synthesis finished.");
-
-        /* placement and site-routing */
-        long start_time = System.nanoTime();
-        System.out.println("Placement Start...");
-        for (Integer index : result.keySet()) {
-            List<Site[]> blockConfig = result.get(index);
-            AutoPlacement.place_block(d, index, blockConfig);
-        }
-        System.out.println("Site-Routing ...");
-        d.routeSites();
-        long end_time = System.nanoTime();
-        System.out.println(">>>-----------------------------------------------");
-        String s = "RapidWright Hard Block Placement time = " + (end_time - start_time) / 1e9
-                + " s, which is " + (end_time - start_time) / 1e9 / 60 + " min";
-        System.out.println(s);
-        System.out.println(">>>-----------------------------------------------");
-
-        /* write out checkpoint, finish routing with Vivado */
-        String placedDCPPath = checkpoint + "blockNum=" + blocknum + "_placed.dcp";
-        File file = new File(placedDCPPath);
-        if (file.exists())
-            file.delete();
-        d.writeCheckpoint(placedDCPPath);
-        Vivado.finishPlacementNRoute_2(placedDCPPath, blocknum, result, device, vivado_verbose);
+//        Map<Integer, List<Site[]>> result = new HashMap<>();
+//        String xdc_result = results + "blockNum=" + blocknum + ".xdc";
+//
+//
+//        FileWriter fw = new FileWriter(xdc_result);
+//        PrintWriter pw = new PrintWriter(fw, true);
+//        result = main.AutoPlacement.find_solution(
+//                method, blocknum, visualization, device,
+//                population, parents, children, crossoverR,
+//                x_min, x_max, y_min, y_max);
+//
+//        Tool.write_XDC(result, pw);
+//        pw.close();
+//
+//        System.out.println("Found Placement Strategy for " + result.size() + " blocks of convolution units");
+//
+//        /* synthesize one SLR */
+//        Design d = Vivado.synthesize_vivado(blocknum, part, 0, vivado_verbose);
+//        System.out.println("One SLR synthesis finished.");
+//
+//        /* placement and site-routing */
+//        long start_time = System.nanoTime();
+//        System.out.println("Placement Start...");
+//        for (Integer index : result.keySet()) {
+//            List<Site[]> blockConfig = result.get(index);
+//            AutoPlacement.place_block(d, index, blockConfig);
+//        }
+//        System.out.println("Site-Routing ...");
+//        d.routeSites();
+//        long end_time = System.nanoTime();
+//        System.out.println(">>>-----------------------------------------------");
+//        String s = "RapidWright Hard Block Placement time = " + (end_time - start_time) / 1e9
+//                + " s, which is " + (end_time - start_time) / 1e9 / 60 + " min";
+//        System.out.println(s);
+//        System.out.println(">>>-----------------------------------------------");
+//
+//        /* write out checkpoint, finish routing with Vivado */
+//        String placedDCPPath = checkpoint + "blockNum=" + blocknum + "_placed.dcp";
+//        File file = new File(placedDCPPath);
+//        if (file.exists())
+//            file.delete();
+//        d.writeCheckpoint(placedDCPPath);
+//        Vivado.finishPlacementNRoute_2(placedDCPPath, blocknum, result, device, vivado_verbose);
 
         /* read in routed SLR and replicate */
         String routedSLR = checkpoint + "blockNum=" + blocknum + "_routed.dcp";
-        start_time = System.nanoTime();
+        long start_time = System.nanoTime();
         Design full_chip_routed = Tool.replicateSLR(routedSLR);
-        end_time = System.nanoTime();
+        long end_time = System.nanoTime();
         System.out.println(">>>-----------------------------------------------");
-        s = "SLR Replication time = " + (end_time - start_time) / 1e9
+        String s = "SLR Replication time = " + (end_time - start_time) / 1e9
                 + " s, which is " + (end_time - start_time) / 1e9 / 60 + " min";
         System.out.println(s);
         System.out.println(">>>-----------------------------------------------");
