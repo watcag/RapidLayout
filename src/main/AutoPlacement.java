@@ -322,6 +322,7 @@ public class AutoPlacement {
         final boolean matplotlib_visualize = Boolean.parseBoolean(prop.getProperty("matplotlib_visual"));
         final boolean vivado_verbose = Boolean.parseBoolean(prop.getProperty("vivado_verbose"));
         final boolean visualization = Boolean.parseBoolean(prop.getProperty("opt_visual"));
+        final int depth = Integer.parseInt(prop.getProperty("pipelineDepth"));
 
         // experiment config
         int blocknum = 80; // TODO: automatically determine blocknum
@@ -393,6 +394,9 @@ public class AutoPlacement {
                 + " s, which is " + (end_time - start_time) / 1e9 / 60 + " min";
         System.out.println(s);
         System.out.println(">>>-----------------------------------------------");
+
+        /* pipelining */
+        AutoPipeline.fixed_pipeline(d, depth, blocknum);
 
         /* write out checkpoint, finish routing with Vivado */
         String placedDCPPath = checkpoint + "blockNum=" + blocknum + "_placed.dcp";

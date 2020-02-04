@@ -558,7 +558,9 @@ public class Experiments {
 
         //clean_pipeline();
 
-        fixed_pipelining();
+        //fixed_pipelining();
+
+        manual_placement_timing();
 
     }
 
