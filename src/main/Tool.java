@@ -389,8 +389,6 @@ public class Tool {
         //Net clk = design.createNet("clk");
         //clk.getLogicalNet().createPortInst(clkPort);
         EDIFCell top = design.getTopEDIFCell();
-        System.out.println("top name = " + top.getName());
-        System.out.println("top legalEDIFName = " + top.getLegalEDIFName());
 
         System.out.println("SLR Replication: start...");
         for(Site anchor : allValidPlacement){
