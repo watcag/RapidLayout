@@ -121,7 +121,6 @@ public class Experiments {
         Vivado.implement_pipelined_design(pipelined, xdc, 480, true);
     }
 
-
     public static void transfer_13p() throws IOException {
         String device = "xcvu13p";
         String part = new Design("name", device).getPartName();
@@ -284,7 +283,6 @@ public class Experiments {
         }
     }
 
-
     public static Design replicate() {
 
 
@@ -334,7 +332,6 @@ public class Experiments {
 
         return design;
     }
-
 
     public static void replicate_SLR() throws IOException {
 
@@ -425,7 +422,6 @@ public class Experiments {
         Vivado.synthesize_vivado(blockn, part, 4, true);
     }
 
-
     public static void manual_placement_timing() throws IOException {
 
         int depth = 4;
@@ -446,7 +442,7 @@ public class Experiments {
             printWriter.println("synth_design -mode out_of_context -part " + part + " -top dsp_conv_chip;");
             printWriter.println("create_clock -period 1.000 -waveform {0.000 0.500} [get_nets clk];");
             printWriter.println("read_xdc " + verilog_path + "dsp_conv_chip.xdc");
-            printWriter.println("place_design; route_design; report_utilization; report_timing;");
+            printWriter.println("place_design; route_design; report_timing;");
             printWriter.println("write_checkpoint -force -file " + output_path);
             printWriter.println("exit");
             printWriter.close();
@@ -466,6 +462,19 @@ public class Experiments {
         System.out.println(">>>-----------------------------------------------");
         System.out.println("Pipeline Depth = " + depth + ", Frequency = " + frequency / 1e6 + " MHz");
         System.out.println(">>>-----------------------------------------------");
+    }
+
+    public static void fixed_pipelining() throws IOException {
+        int blockn = 1;
+        int depth = 4;
+        String device = "xcvu11p";
+        String part = new Design("name", device).getPartName();
+
+        /* synthesize one SLR */
+        Design d = Vivado.synthesize_vivado(blockn, part, depth, true);
+        System.out.println("One SLR synthesis finished.");
+
+        AutoPipeline.fixed_pipeline(d, depth, blockn);
     }
 
     public static void count_register() throws IOException {
@@ -514,107 +523,11 @@ public class Experiments {
         }
     }
 
-    public static void moduleInstTest() throws IOException {
-        // read config
-        Properties prop = Tool.getProperties();
-        String device = prop.getProperty("device");
-        String part = new Design("name", device).getPartName();
-
-        // Switches
-        final boolean matplotlib_visualize = false;
-        final boolean vivado_verbose = true;
-        final boolean visualization = false;
-
-        // experiment config
-        int blocknum = 1;
-        String method = "CMA";
-
-        // optimization parameters
-        int population = 5;
-        int parents = 20;
-        int children = 50;
-        double crossoverR = 0.98;
-        int x_min = 0;
-        int x_max = 6000; // all columns
-        int y_min = 0;
-        int y_max = 240; // TODO: automatically determine min replicating rectangle
-
-        // set up paths
-        String root = System.getProperty("RAPIDWRIGHT_PATH") + "/";
-        String checkpoint = root + "checkpoint/";
-        String results = root + "result/";
-
-
-        /*  --- find placement solution --- */
-//        Map<Integer, List<Site[]>> result = new HashMap<>();
-//        String xdc_result = results + "blockNum=" + blocknum + ".xdc";
-//
-//
-//        FileWriter fw = new FileWriter(xdc_result);
-//        PrintWriter pw = new PrintWriter(fw, true);
-//        result = main.AutoPlacement.find_solution(
-//                method, blocknum, visualization, device,
-//                population, parents, children, crossoverR,
-//                x_min, x_max, y_min, y_max);
-//
-//        Tool.write_XDC(result, pw);
-//        pw.close();
-//
-//        System.out.println("Found Placement Strategy for " + result.size() + " blocks of convolution units");
-//
-//        /* synthesize one SLR */
-//        Design d = Vivado.synthesize_vivado(blocknum, part, 0, vivado_verbose);
-//        System.out.println("One SLR synthesis finished.");
-//
-//        /* placement and site-routing */
-//        long start_time = System.nanoTime();
-//        System.out.println("Placement Start...");
-//        for (Integer index : result.keySet()) {
-//            List<Site[]> blockConfig = result.get(index);
-//            AutoPlacement.place_block(d, index, blockConfig);
-//        }
-//        System.out.println("Site-Routing ...");
-//        d.routeSites();
-//        long end_time = System.nanoTime();
-//        System.out.println(">>>-----------------------------------------------");
-//        String s = "RapidWright Hard Block Placement time = " + (end_time - start_time) / 1e9
-//                + " s, which is " + (end_time - start_time) / 1e9 / 60 + " min";
-//        System.out.println(s);
-//        System.out.println(">>>-----------------------------------------------");
-//
-//        /* write out checkpoint, finish routing with Vivado */
-//        String placedDCPPath = checkpoint + "blockNum=" + blocknum + "_placed.dcp";
-//        File file = new File(placedDCPPath);
-//        if (file.exists())
-//            file.delete();
-//        d.writeCheckpoint(placedDCPPath);
-//        Vivado.finishPlacementNRoute_2(placedDCPPath, blocknum, result, device, vivado_verbose);
-
-        /* read in routed SLR and replicate */
-        String routedSLR = checkpoint + "blockNum=" + blocknum + "_routed.dcp";
-        long start_time = System.nanoTime();
-        Design full_chip_routed = Tool.replicateSLR(routedSLR);
-        long end_time = System.nanoTime();
-        System.out.println(">>>-----------------------------------------------");
-        String s = "SLR Replication time = " + (end_time - start_time) / 1e9
-                + " s, which is " + (end_time - start_time) / 1e9 / 60 + " min";
-        System.out.println(s);
-        System.out.println(">>>-----------------------------------------------");
-        full_chip_routed.flattenDesign();
-        full_chip_routed.writeCheckpoint(checkpoint + "full-chip_" + device + ".dcp");
-
-        /* post implementation timing */
-        //Vivado.post_impl_retiming(checkpoint + "full-chip_" + device + ".dcp");
-
-
-    }
-
-
     public static void main(String[] args) throws IOException {
 
         // set up env variable
         if (System.getenv("RAPIDWRIGHT_PATH") == null)
-            System.setProperty("RAPIDWRIGHT_PATH", System.getProperty("user.home") + "/RapidWright");
+            System.setProperty("RAPIDWRIGHT_PATH", System.getProperty("user.home") + "/RapidLayout");
         else
             System.setProperty("RAPIDWRIGHT_PATH", System.getenv("RAPIDWRIGHT_PATH"));
 
@@ -643,11 +556,9 @@ public class Experiments {
 
         //count_register();
 
-
         //clean_pipeline();
 
-        moduleInstTest();
-
+        fixed_pipelining();
 
     }
 

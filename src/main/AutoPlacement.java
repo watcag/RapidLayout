@@ -309,7 +309,7 @@ public class AutoPlacement {
 
     }
 
-    public static void flow_SLR_real() throws IOException {
+    public static void flow_SLR() throws IOException {
         // read config
         Properties prop = Tool.getProperties();
         String device = prop.getProperty("device");
@@ -400,7 +400,7 @@ public class AutoPlacement {
         if (file.exists())
             file.delete();
         d.writeCheckpoint(placedDCPPath);
-        Vivado.finishPlacementNRoute_2(placedDCPPath, blocknum, result, device, vivado_verbose);
+        double freq = Vivado.finishPlacementNRoute_2(placedDCPPath, blocknum, result, device, vivado_verbose);
 
         /* read in routed SLR and replicate */
         String routedSLR = checkpoint + "blockNum=" + blocknum + "_routed.dcp";
@@ -415,87 +415,8 @@ public class AutoPlacement {
         full_chip_routed.flattenDesign();
         full_chip_routed.writeCheckpoint(checkpoint + "full-chip_" + device + ".dcp");
 
-        /* post implementation timing */
-        Vivado.post_impl_retiming(checkpoint + "full-chip_" + device + ".dcp");
-    }
-
-    public static void flow_SLR() throws IOException {
-        // read config
-        Properties prop = Tool.getProperties();
-        String device = prop.getProperty("device");
-        String part = new Design("name", device).getPartName();
-
-        // Switches
-        final boolean optimization = false;
-        final boolean rapidSynth = Boolean.parseBoolean(prop.getProperty("rapidSynth"));
-        final boolean autoPipeline = Boolean.parseBoolean(prop.getProperty("autoPipeline"));
-        final boolean matplotlib_visualize = Boolean.parseBoolean(prop.getProperty("matplotlib_visual"));
-        final boolean vivado_verbose = Boolean.parseBoolean(prop.getProperty("vivado_verbose"));
-        final boolean visualization = Boolean.parseBoolean(prop.getProperty("opt_visual"));
-
-        // experiment config
-        int blocknum = 80; // TODO: automatically determine blocknum
-        String method = prop.getProperty("method");
-
-        // optimization parameters
-        int population = 5;
-        int parents = 20;
-        int children = 50;
-        double crossoverR = 0.98;
-        int x_min = 0;
-        int x_max = 6000; // all columns
-        int y_min = 0;
-        int y_max = 240; // TODO: automatically determine min replicating rectangle
-
-        // set up paths
-        String root = System.getProperty("RAPIDWRIGHT_PATH") + "/";
-        String checkpoint = root + "checkpoint/";
-        String results = root + "result/";
-
-
-        /*  --- find placement solution --- */
-        Map<Integer, List<Site[]>> result = new HashMap<>();
-        String xdc_result = results + "blockNum=" + blocknum + ".xdc";
-
-        if (optimization)
-        {
-            FileWriter fw = new FileWriter(xdc_result);
-            PrintWriter pw = new PrintWriter(fw, true);
-            result = find_solution(
-                    method, blocknum, visualization, device,
-                    population, parents, children, crossoverR,
-                    x_min, x_max, y_min, y_max);
-
-            Tool.write_XDC(result, pw);
-            pw.close();
-        }
-        else // use previous results
-            result = Tool.getMapFromXDC(xdc_result, device);
-        System.out.println("Found Placement Strategy for " + result.size() + " blocks of convolution units");
-
-        /* replicate placement to one SLR */
-        result = AutoPlacement.populateFixed(result, device, 2);
-        blocknum *= 2;
-        xdc_result = results + "blockNum=" + blocknum + ".xdc";
-        PrintWriter pr = new PrintWriter(new FileWriter(xdc_result), true);
-        Tool.write_XDC(result, pr);
-        pr.close();
-
-        /* read in routed SLR and replicate */
-        String routedSLR = checkpoint + "blockNum=" + blocknum + "_routed.dcp";
-        long start_time = System.nanoTime();
-        Design full_chip_routed = Tool.replicateSLR(routedSLR);
-        long end_time = System.nanoTime();
-        System.out.println(">>>-----------------------------------------------");
-        String s = "SLR Replication time = " + (end_time - start_time) / 1e9
-                + " s, which is " + (end_time - start_time) / 1e9 / 60 + " min";
-        System.out.println(s);
-        System.out.println(">>>-----------------------------------------------");
-        full_chip_routed.flattenDesign();
-        full_chip_routed.writeCheckpoint(checkpoint + "full-chip_" + device + ".dcp");
-
-        /* post implementation timing */
-        Vivado.post_impl_retiming(checkpoint + "full-chip_" + device + ".dcp");
+        /* report clock frequency */
+        System.out.println("$$$$ frequency =  " + freq/1e6 + " MHz");
     }
 
     public static void main(String[] args) throws IOException {
@@ -504,6 +425,12 @@ public class AutoPlacement {
             System.setProperty("RAPIDWRIGHT_PATH", System.getProperty("user.home") + "/RapidWright");
         else
             System.setProperty("RAPIDWRIGHT_PATH", System.getenv("RAPIDWRIGHT_PATH"));
+
+        File checkpoint = new File(System.getProperty("RAPIDWRIGHT_PATH") + "/checkpoint");
+        File result = new File(System.getProperty("RAPIDWRIGHT_PATH") + "/result");
+        if (checkpoint.mkdirs()) System.out.println("checkpoint folder created");
+        if (result.mkdirs())     System.out.println("result folder created");
+
 
         Tool.printParameters();
         Properties prop = Tool.getProperties();

@@ -386,27 +386,19 @@ public class Tool {
 
         // create global clock port
         EDIFPort clkPort = design.getTopEDIFCell().createPort("clk", EDIFDirection.INPUT, 1);
-        //Net clk = design.createNet("clk");
-        //clk.getLogicalNet().createPortInst(clkPort);
         EDIFCell top = design.getTopEDIFCell();
 
         System.out.println("SLR Replication: start...");
         for(Site anchor : allValidPlacement){
             EDIFCellInst ci = top.createChildCellInst(allValidPlacement.indexOf(anchor) + "_moduleInst", d.getTopEDIFCell());
             ModuleInst mi = design.createModuleInst(allValidPlacement.indexOf(anchor) + "_moduleInst", module);
-            //design.addModuleInstNetlist(mi, module.getNetlist());
             mi.setCellInst(ci);
-            //EDIFPort clkPortModule = mi.getCellInst().getPort("clk");
-            //clk.getLogicalNet().createPortInst(clkPortModule);
-            mi.connect("clk","clk");
+            //mi.connect("clk","clk");
             System.out.println("SLR Replication: placing SLR " + allValidPlacement.indexOf(anchor));
             mi.place(anchor);
         }
 
         System.out.println("SLR Replication: done");
-
-        //design.flattenDesign();
-
 
         return design;
     }

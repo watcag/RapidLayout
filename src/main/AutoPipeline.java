@@ -300,6 +300,56 @@ public class AutoPipeline {
         }
     }
 
+    public static void fixed_pipeline(Design d, Integer depth, Integer blockn) throws  IOException {
+        String[] srcEDIFCells = new String[]{
+                "name[block].dut/uram_inst_wr", "name[block].dut/uram_inst_rd",
+                "name[block].dut/conv1/bram_inst_rdc1","name[block].dut/conv2/bram_inst_rdc1",
+                "name[block].dut/conv1/bram_inst_rdc2", "name[block].dut/conv2/bram_inst_rdc2",
+                "name[block].dut/conv1/bram_inst_rdc3", "name[block].dut/conv2/bram_inst_rdc3",
+                "name[block].dut/conv1/bram_inst_rdc4", "name[block].dut/conv2/bram_inst_rdc4"};
+        String[] srcPortInsts = new String[] {
+                "DOUT_B[pin]", "DOUT_B[pin]",
+                "DOUTADOUT[pin]", "DOUTADOUT[pin]","DOUTBDOUT[pin]","DOUTBDOUT[pin]",
+                "DOUTADOUT[pin]","DOUTADOUT[pin]","DOUTADOUT[pin]","DOUTADOUT[pin]"
+        };
+        String[] dstEDIFCells = new String[] {
+                "name[block].dut/option_3.uram_rd_data_r2_reg[pin]_srl2", "name[block].dut/uram2_rd_data_r_reg[pin]",
+                "name[block].dut/conv1/a0k0_3.dsp_a0_1_reg[pin]", "name[block].dut/conv2/a0k0_3.dsp_a0_1_reg[pin]",
+                "name[block].dut/conv1/rd_data_b2_r1_reg[pin]","name[block].dut/conv2/rd_data_b2_r1_reg[pin]",
+                "name[block].dut/conv1/rd_data_b3_r1_reg[pin]","name[block].dut/conv2/rd_data_b3_r1_reg[pin]",
+                "name[block].dut/conv1/a0k0_3.dsp_k0_1_reg[pin]","name[block].dut/conv2/a0k0_3.dsp_k0_1_reg[pin]"
+        };
+        String[] namePrefix = new String[] {
+                "name[block].dut/", "name[block].dut/",
+                "name[block].dut/conv1/", "name[block].dut/conv2/",
+                "name[block].dut/conv1/", "name[block].dut/conv2/",
+                "name[block].dut/conv1/", "name[block].dut/conv2/",
+                "name[block].dut/conv1/", "name[block].dut/conv2/"
+        };
+
+        int nreg = depth;
+
+        Integer[] numberofPin = new Integer[] {32,72,
+                16,16, 16,16, 16,16, 8,8};
+        for (int block = 0; block < blockn; block++) {
+            for (int i = 0; i < srcEDIFCells.length; i++) {
+                if (i > 1) continue; // only pipeline URAMs
+                for (int pin = 0; pin < numberofPin[i]; pin++) {
+                    String srcEDIFCell = srcEDIFCells[i].replaceAll("block", Integer.toString(block));
+                    String srcPortInst = srcPortInsts[i].replaceAll("pin", Integer.toString(pin));
+                    String dstEDIFCell = dstEDIFCells[i].replaceAll("pin", Integer.toString(pin)).replaceAll("block", Integer.toString(block));
+                    String dstPortInst = "D";
+                    String name = namePrefix[i] + "pipeline_" + i + "_" + pin;
+                    name = name.replaceAll("block", Integer.toString(block));
+                    System.out.println("Inserting: " + srcEDIFCell + " -> " + dstEDIFCell + " : " + name);
+                    //insert_reg(d, srcEDIFCell, srcPortInst, dstEDIFCell, dstPortInst, name, 4); // we used this for full-chip
+                    insert_reg_2(d, srcEDIFCell, srcPortInst, dstEDIFCell, dstPortInst, name, nreg, "pipeline_"+i+"_"+pin);
+                    System.out.println("pipeline depth = " + nreg);
+                }
+            }
+        }
+    }
+
 
     /*
     *        ----   Pipeline Register Insertion Locations  ----
