@@ -466,7 +466,7 @@ public class Experiments {
 
     public static void fixed_pipelining() throws IOException {
         int blockn = 1;
-        int depth = 0;
+        int depth = 4;
         String device = "xcvu11p";
         String part = new Design("name", device).getPartName();
 
@@ -474,7 +474,9 @@ public class Experiments {
         Design d = Vivado.synthesize_vivado(blockn, part, depth, true);
         System.out.println("One SLR synthesis finished.");
 
-        //AutoPipeline.fixed_pipeline(d, depth, blockn);
+        AutoPipeline.fixed_pipeline(d, depth, blockn);
+
+        d.writeCheckpoint(System.getenv("RAPIDWRIGHT_PATH") + "/checkpoint/pipeline.dcp");
     }
 
     public static void count_register() throws IOException {

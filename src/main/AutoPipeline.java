@@ -193,7 +193,6 @@ public class AutoPipeline {
         List<Cell> pipelineCells = new ArrayList<>();
 
         for (int i = 0; i < nReg; i++){
-            Site s = dev.getSite("SLICE_X43Y"+i); // random site, we'll unplace later
             EDIFCellInst pipelineCellInst = Design.createUnisimInst(parent, UniqueName + "pipeline_cell_" + i, Unisim.FDRE);
             Cell pipelineCell = d.createCell(UniqueName + "pipeline_cell_" + i, pipelineCellInst);
             pipelineCells.add(pipelineCell); // collect the new pipeline cell
@@ -313,7 +312,7 @@ public class AutoPipeline {
                 "DOUTADOUT[pin]","DOUTADOUT[pin]","DOUTADOUT[pin]","DOUTADOUT[pin]"
         };
         String[] dstEDIFCells = new String[] {
-                "name[block].dut/option_3.uram_rd_data_r2_reg[pin]_srl2", "name[block].dut/uram2_rd_data_r_reg[pin]",
+                "name[block].dut/option_0.uram_rd_data_r_reg[pin]", "name[block].dut/uram2_rd_data_r_reg[pin]",
                 "name[block].dut/conv1/a0k0_3.dsp_a0_1_reg[pin]", "name[block].dut/conv2/a0k0_3.dsp_a0_1_reg[pin]",
                 "name[block].dut/conv1/rd_data_b2_r1_reg[pin]","name[block].dut/conv2/rd_data_b2_r1_reg[pin]",
                 "name[block].dut/conv1/rd_data_b3_r1_reg[pin]","name[block].dut/conv2/rd_data_b3_r1_reg[pin]",
