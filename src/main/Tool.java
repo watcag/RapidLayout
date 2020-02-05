@@ -393,7 +393,7 @@ public class Tool {
             EDIFCellInst ci = top.createChildCellInst(allValidPlacement.indexOf(anchor) + "_moduleInst", d.getTopEDIFCell());
             ModuleInst mi = design.createModuleInst(allValidPlacement.indexOf(anchor) + "_moduleInst", module);
             mi.setCellInst(ci);
-            //mi.connect("clk","clk");
+            mi.connect("clk","clk");
             System.out.println("SLR Replication: placing SLR " + allValidPlacement.indexOf(anchor));
             mi.place(anchor);
         }

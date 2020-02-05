@@ -423,6 +423,34 @@ public class AutoPlacement {
         System.out.println("$$$$ frequency =  " + freq/1e6 + " MHz");
     }
 
+    public static void flow_SLR_debug() throws IOException {
+        // read config
+        Properties prop = Tool.getProperties();
+        String device = prop.getProperty("device");
+        String part = new Design("name", device).getPartName();
+        int blocknum = 160;
+
+        String checkpoint = System.getenv("RAPIDWRIGHT_PATH") + "/checkpoint/";
+
+        /* read in routed SLR and replicate */
+        String routedSLR = checkpoint + "blockNum=" + blocknum + "_routed.dcp";
+        long start_time = System.nanoTime();
+        Design full_chip_routed = Tool.replicateSLR(routedSLR);
+        long end_time = System.nanoTime();
+        System.out.println(">>>-----------------------------------------------");
+        String s = "SLR Replication time = " + (end_time - start_time) / 1e9
+                + " s, which is " + (end_time - start_time) / 1e9 / 60 + " min";
+        System.out.println(s);
+        System.out.println(">>>-----------------------------------------------");
+        //full_chip_routed.flattenDesign();
+        full_chip_routed.writeCheckpoint(checkpoint + "full-chip_" + device + ".dcp");
+
+        /* report clock frequency */
+        //System.out.println("$$$$ frequency =  " + freq/1e6 + " MHz");
+        Vivado.post_impl_retiming(checkpoint + "full-chip_" + device + ".dcp");
+    }
+
+
     public static void main(String[] args) throws IOException {
         // set up env variable
         if (System.getenv("RAPIDWRIGHT_PATH") == null)
@@ -440,7 +468,7 @@ public class AutoPlacement {
         Properties prop = Tool.getProperties();
         final boolean useSLR = Boolean.parseBoolean(prop.getProperty("SLRCopy"));
         if (useSLR)
-            flow_SLR();
+            flow_SLR_debug();
         else
             flow_regular();
     }
