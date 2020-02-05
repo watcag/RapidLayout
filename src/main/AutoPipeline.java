@@ -313,10 +313,10 @@ public class AutoPipeline {
         };
         String[] dstEDIFCells = new String[] {
                 "name[block].dut/option_0.uram_rd_data_r_reg[pin]", "name[block].dut/uram2_rd_data_r_reg[pin]",
-                "name[block].dut/conv1/a0k0_3.dsp_a0_1_reg[pin]", "name[block].dut/conv2/a0k0_3.dsp_a0_1_reg[pin]",
+                "name[block].dut/conv1/a0k0_0.dsp_a0_r_reg[pin]", "name[block].dut/conv2/a0k0_0.dsp_a0_r_reg[pin]",
                 "name[block].dut/conv1/rd_data_b2_r1_reg[pin]","name[block].dut/conv2/rd_data_b2_r1_reg[pin]",
                 "name[block].dut/conv1/rd_data_b3_r1_reg[pin]","name[block].dut/conv2/rd_data_b3_r1_reg[pin]",
-                "name[block].dut/conv1/a0k0_3.dsp_k0_1_reg[pin]","name[block].dut/conv2/a0k0_3.dsp_k0_1_reg[pin]"
+                "name[block].dut/conv1/a0k0_0.dsp_k0_r_reg[pin]","name[block].dut/conv2/a0k0_0.dsp_k0_r_reg[pin]"
         };
         String[] namePrefix = new String[] {
                 "name[block].dut/", "name[block].dut/",
@@ -332,7 +332,7 @@ public class AutoPipeline {
                 16,16, 16,16, 16,16, 8,8};
         for (int block = 0; block < blockn; block++) {
             for (int i = 0; i < srcEDIFCells.length; i++) {
-                if (i > 1) continue; // only pipeline URAMs
+                //if (i > 1) continue; // only pipeline URAMs
                 for (int pin = 0; pin < numberofPin[i]; pin++) {
                     String srcEDIFCell = srcEDIFCells[i].replaceAll("block", Integer.toString(block));
                     String srcPortInst = srcPortInsts[i].replaceAll("pin", Integer.toString(pin));

@@ -419,7 +419,7 @@ public class Experiments {
         String device = "xcvu11p";
         String part = new Design("name", device).getPartName();
         int blockn = 1;
-        Vivado.synthesize_vivado(blockn, part, 4, true);
+        Vivado.synthesize_vivado(blockn, part, 0, true);
     }
 
     public static void manual_placement_timing() throws IOException {
@@ -560,9 +560,9 @@ public class Experiments {
 
         //clean_pipeline();
 
-        //fixed_pipelining();
+        fixed_pipelining();
 
-        manual_placement_timing();
+        //manual_placement_timing();
 
     }
 
