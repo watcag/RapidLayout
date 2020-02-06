@@ -337,7 +337,7 @@ public class Experiments {
 
         System.out.println("We do'in SLR replication");
 
-        String device = "xcvu13p";
+        String device = "xcvu11p";
         String part = new Design("name", device).getPartName();
 
         // set up output log
@@ -347,7 +347,7 @@ public class Experiments {
 
         // optimization parameters, we shall use CMA-ES
         final boolean optimize = true;
-        int blocknum = 80;
+        int blocknum = 1;
         double crossoverR = 0.98;
         int x_min = 0;
         int x_max = 6000; // all columns
@@ -400,9 +400,11 @@ public class Experiments {
         System.out.println(s);
         System.out.println(">>>-----------------------------------------------");
 
+        // pipelining
+        AutoPipeline.fixed_pipeline(d, 4, blocknum);
 
         // output placed DCP file
-        String placedDCPPath = System.getProperty("user.home") + "/RapidWright" + "/checkpoint/blockNum=" + blocknum + "_placed_13p.dcp";
+        String placedDCPPath = System.getProperty("user.home") + "/RapidWright" + "/checkpoint/blockNum=" + blocknum + "_placed_11p.dcp";
         File file = new File(placedDCPPath);
         if (file.exists())
             file.delete();
@@ -471,12 +473,12 @@ public class Experiments {
         String part = new Design("name", device).getPartName();
 
         /* synthesize one SLR */
-        Design d = Vivado.synthesize_vivado(blockn, part, depth, true);
-        System.out.println("One SLR synthesis finished.");
+        Design d = Vivado.synthesize_vivado(blockn, part, 0, true);
 
         AutoPipeline.fixed_pipeline(d, depth, blockn);
 
-        d.writeCheckpoint(System.getenv("RAPIDWRIGHT_PATH") + "/checkpoint/pipeline.dcp");
+        String pipelined_dcp = System.getenv("RAPIDWRIGHT_PATH") + "/checkpoint/pipeline.dcp";
+        d.writeCheckpoint(pipelined_dcp);
     }
 
     public static void count_register() throws IOException {

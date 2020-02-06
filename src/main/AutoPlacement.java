@@ -468,7 +468,7 @@ public class AutoPlacement {
         Properties prop = Tool.getProperties();
         final boolean useSLR = Boolean.parseBoolean(prop.getProperty("SLRCopy"));
         if (useSLR)
-            flow_SLR_debug();
+            flow_SLR();
         else
             flow_regular();
     }
