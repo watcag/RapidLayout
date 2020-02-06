@@ -467,7 +467,7 @@ public class Experiments {
     }
 
     public static void fixed_pipelining() throws IOException {
-        int blockn = 160;
+        int blockn = 80;
         int depth = 4;
         String device = "xcvu11p";
         String part = new Design("name", device).getPartName();
@@ -477,6 +477,9 @@ public class Experiments {
                 "CMA", blockn, false, device,
                 5, 10, 20, 0.98,
                 0, 6000, 0, 240);
+
+        result = AutoPlacement.populateFixed(result, device, 2);
+        blockn = blockn * 2;
 
         /* synthesize one SLR */
         Design d = Vivado.synthesize_vivado(blockn, part, 0, true);

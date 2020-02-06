@@ -316,7 +316,8 @@ public class AutoPlacement {
         String part = new Design("name", device).getPartName();
 
         // Switches
-        final boolean optimization = Boolean.parseBoolean(prop.getProperty("optimization"));
+        //final boolean optimization = Boolean.parseBoolean(prop.getProperty("optimization"));
+        boolean optimization = true;
         final boolean rapidSynth = Boolean.parseBoolean(prop.getProperty("rapidSynth"));
         final boolean autoPipeline = Boolean.parseBoolean(prop.getProperty("autoPipeline"));
         final boolean matplotlib_visualize = Boolean.parseBoolean(prop.getProperty("matplotlib_visual"));
@@ -325,7 +326,7 @@ public class AutoPlacement {
         final int depth = Integer.parseInt(prop.getProperty("pipelineDepth"));
 
         // experiment config
-        int blocknum = 80; // TODO: automatically determine blocknum
+        int blocknum = 1; // TODO: automatically determine blocknum
         String method = prop.getProperty("method");
 
         // optimization parameters
@@ -368,12 +369,12 @@ public class AutoPlacement {
             Tool.matplot_visualize(xdc_result);
 
         /* replicate placement to one SLR */
-        result = AutoPlacement.populateFixed(result, device, 2);
-        blocknum *= 2;
-        xdc_result = results + "blockNum=" + blocknum + ".xdc";
-        PrintWriter pr = new PrintWriter(new FileWriter(xdc_result), true);
-        Tool.write_XDC(result, pr);
-        pr.close();
+//        result = AutoPlacement.populateFixed(result, device, 2);
+//        blocknum *= 2;
+//        xdc_result = results + "blockNum=" + blocknum + ".xdc";
+//        PrintWriter pr = new PrintWriter(new FileWriter(xdc_result), true);
+//        Tool.write_XDC(result, pr);
+//        pr.close();
 
         /* synthesize one SLR */
         Design d = Vivado.synthesize_vivado(blocknum, part, 0, vivado_verbose);
@@ -394,6 +395,8 @@ public class AutoPlacement {
                 + " s, which is " + (end_time - start_time) / 1e9 / 60 + " min";
         System.out.println(s);
         System.out.println(">>>-----------------------------------------------");
+
+        d = Vivado.legalize_process(d);
 
         /* pipelining */
         AutoPipeline.fixed_pipeline(d, depth, blocknum);
