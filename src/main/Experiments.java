@@ -467,7 +467,7 @@ public class Experiments {
     }
 
     public static void fixed_pipelining() throws IOException {
-        int blockn = 1;
+        int blockn = 160;
         int depth = 4;
         String device = "xcvu11p";
         String part = new Design("name", device).getPartName();
@@ -487,6 +487,8 @@ public class Experiments {
             AutoPlacement.place_block(d, index, blockConfig);
         }
         d.routeSites();
+
+        d = Vivado.legalize_process(d);
 
         /* pipelining */
         AutoPipeline.fixed_pipeline(d, depth, blockn);

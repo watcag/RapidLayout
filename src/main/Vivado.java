@@ -326,4 +326,24 @@ public class Vivado {
 
         return frequency;
     }
+
+    public static Design legalize_process(Design d) throws IOException {
+        String temp_dcp = System.getProperty("RAPIDWRIGHT_PATH") + "/checkpoint/temp.dcp";
+        String temp_edif = System.getProperty("RAPIDWRIGHT_PATH") + "/checkpoint/temp.edf";
+        d.writeCheckpoint(temp_dcp);
+
+        // vivado: read in and write out the temp dcp
+        String tclFile = System.getProperty("RAPIDWRIGHT_PATH") + "/tcl/temp.tcl";
+        PrintWriter tcl = new PrintWriter(new FileWriter(tclFile), true);
+        tcl.println("open_checkpoint " + temp_dcp);
+        tcl.println("write_checkpoint -force -file " + temp_dcp);
+        tcl.println("write_edif -force -file " + temp_edif);
+        tcl.println("exit");
+        tcl.close();
+
+        Vivado.vivado_cmd("vivado -mode tcl -source " + tclFile, true);
+
+        d = Design.readCheckpoint(temp_dcp);
+        return d;
+    }
 }
