@@ -472,9 +472,23 @@ public class Experiments {
         String device = "xcvu11p";
         String part = new Design("name", device).getPartName();
 
+        /* optimization */
+        Map<Integer, List<Site[]>> result = AutoPlacement.find_solution(
+                "CMA", blockn, false, device,
+                5, 10, 20, 0.98,
+                0, 6000, 0, 240);
+
         /* synthesize one SLR */
         Design d = Vivado.synthesize_vivado(blockn, part, 0, true);
 
+        /* placement */
+        for (Integer index : result.keySet()) {
+            List<Site[]> blockConfig = result.get(index);
+            AutoPlacement.place_block(d, index, blockConfig);
+        }
+        d.routeSites();
+
+        /* pipelining */
         AutoPipeline.fixed_pipeline(d, depth, blockn);
 
         String pipelined_dcp = System.getenv("RAPIDWRIGHT_PATH") + "/checkpoint/pipeline.dcp";
