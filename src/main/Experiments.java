@@ -4,6 +4,7 @@ import Utils.Utils;
 import com.xilinx.rapidwright.design.Design;
 import com.xilinx.rapidwright.design.ModuleInst;
 import com.xilinx.rapidwright.design.Net;
+import com.xilinx.rapidwright.device.ClockRegion;
 import com.xilinx.rapidwright.device.Site;
 import com.xilinx.rapidwright.edif.EDIFCell;
 import com.xilinx.rapidwright.edif.EDIFCellInst;
@@ -467,7 +468,7 @@ public class Experiments {
     }
 
     public static void fixed_pipelining() throws IOException {
-        int blockn = 80;
+        int blockn = 1;
         int depth = 4;
         String device = "xcvu11p";
         String part = new Design("name", device).getPartName();
@@ -478,8 +479,8 @@ public class Experiments {
                 5, 10, 20, 0.98,
                 0, 6000, 0, 240);
 
-        result = AutoPlacement.populateFixed(result, device, 2);
-        blockn = blockn * 2;
+        //result = AutoPlacement.populateFixed(result, device, 2);
+        //blockn = blockn * 2;
 
         /* synthesize one SLR */
         Design d = Vivado.synthesize_vivado(blockn, part, 0, true);
@@ -498,6 +499,25 @@ public class Experiments {
 
         String pipelined_dcp = System.getenv("RAPIDWRIGHT_PATH") + "/checkpoint/pipeline.dcp";
         d.writeCheckpoint(pipelined_dcp);
+
+        /* finish routing */
+        String tclfile = System.getenv("RAPIDWRIGHT_PATH") + "/tcl/experiment_pp";
+        PrintWriter tcl = new PrintWriter(new FileWriter(tclfile), true);
+        tcl.println("open_checkpoint " + pipelined_dcp);
+        // this is the problem
+        //tcl.println("create_clock -period 1.000 -waveform {0.000 0.500} [get_nets clk];");
+        tcl.println("startgroup");
+        tcl.println("create_pblock {pblock_name.dut}");
+        tcl.println("resize_pblock {pblock_name.dut} -add " + "CLOCKREGION_X0Y0:CLOCKREGION_X1Y0");
+        tcl.println("add_cells_to_pblock {pblock_name.dut} -top");
+        tcl.println("endgroup");
+        tcl.println("set_property CONTAIN_ROUTING true [get_pblocks pblock_name.dut]");
+        tcl.println("place_design");
+
+        tcl.close();
+
+        Vivado.vivado_cmd("vivado -mode tcl -source " + tclfile, true);
+
     }
 
     public static void count_register() throws IOException {

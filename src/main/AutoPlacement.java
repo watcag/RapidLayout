@@ -316,8 +316,7 @@ public class AutoPlacement {
         String part = new Design("name", device).getPartName();
 
         // Switches
-        //final boolean optimization = Boolean.parseBoolean(prop.getProperty("optimization"));
-        boolean optimization = true;
+        final boolean optimization = Boolean.parseBoolean(prop.getProperty("optimization"));
         final boolean rapidSynth = Boolean.parseBoolean(prop.getProperty("rapidSynth"));
         final boolean autoPipeline = Boolean.parseBoolean(prop.getProperty("autoPipeline"));
         final boolean matplotlib_visualize = Boolean.parseBoolean(prop.getProperty("matplotlib_visual"));
@@ -369,12 +368,12 @@ public class AutoPlacement {
             Tool.matplot_visualize(xdc_result);
 
         /* replicate placement to one SLR */
-//        result = AutoPlacement.populateFixed(result, device, 2);
-//        blocknum *= 2;
-//        xdc_result = results + "blockNum=" + blocknum + ".xdc";
-//        PrintWriter pr = new PrintWriter(new FileWriter(xdc_result), true);
-//        Tool.write_XDC(result, pr);
-//        pr.close();
+        result = AutoPlacement.populateFixed(result, device, 2);
+        blocknum *= 2;
+        xdc_result = results + "blockNum=" + blocknum + ".xdc";
+        PrintWriter pr = new PrintWriter(new FileWriter(xdc_result), true);
+        Tool.write_XDC(result, pr);
+        pr.close();
 
         /* synthesize one SLR */
         Design d = Vivado.synthesize_vivado(blocknum, part, 0, vivado_verbose);
@@ -427,30 +426,59 @@ public class AutoPlacement {
     }
 
     public static void flow_SLR_debug() throws IOException {
-        // read config
-        Properties prop = Tool.getProperties();
-        String device = prop.getProperty("device");
+        int blockn = 1;
+        int depth = 4;
+        String device = "xcvu11p";
         String part = new Design("name", device).getPartName();
-        int blocknum = 160;
 
-        String checkpoint = System.getenv("RAPIDWRIGHT_PATH") + "/checkpoint/";
+        /* optimization */
+        Map<Integer, List<Site[]>> result = AutoPlacement.find_solution(
+                "CMA", blockn, false, device,
+                5, 10, 20, 0.98,
+                0, 6000, 0, 240);
 
-        /* read in routed SLR and replicate */
-        String routedSLR = checkpoint + "blockNum=" + blocknum + "_routed.dcp";
-        long start_time = System.nanoTime();
-        Design full_chip_routed = Tool.replicateSLR(routedSLR);
-        long end_time = System.nanoTime();
-        System.out.println(">>>-----------------------------------------------");
-        String s = "SLR Replication time = " + (end_time - start_time) / 1e9
-                + " s, which is " + (end_time - start_time) / 1e9 / 60 + " min";
-        System.out.println(s);
-        System.out.println(">>>-----------------------------------------------");
-        //full_chip_routed.flattenDesign();
-        full_chip_routed.writeCheckpoint(checkpoint + "full-chip_" + device + ".dcp");
+        //result = AutoPlacement.populateFixed(result, device, 2);
+        //blockn = blockn * 2;
 
-        /* report clock frequency */
-        //System.out.println("$$$$ frequency =  " + freq/1e6 + " MHz");
-        Vivado.post_impl_retiming(checkpoint + "full-chip_" + device + ".dcp");
+        /* synthesize one SLR */
+        Design d = Vivado.synthesize_vivado(blockn, part, 0, true);
+
+        /* placement */
+        for (Integer index : result.keySet()) {
+            List<Site[]> blockConfig = result.get(index);
+            AutoPlacement.place_block(d, index, blockConfig);
+        }
+        d.routeSites();
+
+        d = Vivado.legalize_process(d);
+
+        /* pipelining */
+        AutoPipeline.fixed_pipeline(d, depth, blockn);
+
+        String pipelined_dcp = System.getenv("RAPIDWRIGHT_PATH") + "/checkpoint/pipeline.dcp";
+        d.writeCheckpoint(pipelined_dcp);
+
+        /* finish routing */
+//        String tclfile = System.getenv("RAPIDWRIGHT_PATH") + "/tcl/experiment_pp";
+//        PrintWriter tcl = new PrintWriter(new FileWriter(tclfile), true);
+//        tcl.println("open_checkpoint " + pipelined_dcp);
+//        // this is the problem
+//        //tcl.println("create_clock -period 1.000 -waveform {0.000 0.500} [get_nets clk];");
+//        tcl.println("startgroup");
+//        tcl.println("create_pblock {pblock_name.dut}");
+//        tcl.println("resize_pblock {pblock_name.dut} -add " + "CLOCKREGION_X0Y0:CLOCKREGION_X1Y0");
+//        tcl.println("add_cells_to_pblock {pblock_name.dut} -top");
+//        tcl.println("endgroup");
+//        tcl.println("set_property CONTAIN_ROUTING true [get_pblocks pblock_name.dut]");
+//        tcl.println("place_design");
+//
+//        tcl.close();
+//
+//        Vivado.vivado_cmd("vivado -mode tcl -source " + tclfile, true);
+        String placedDCPPath = System.getProperty("RAPIDWRIGHT_PATH") + "/checkpoint/pipeline.dcp";
+        Vivado.finishPlacementNRoute_2(placedDCPPath, blockn, result, device, true);
+
+
     }
 
 
@@ -471,7 +499,7 @@ public class AutoPlacement {
         Properties prop = Tool.getProperties();
         final boolean useSLR = Boolean.parseBoolean(prop.getProperty("SLRCopy"));
         if (useSLR)
-            flow_SLR();
+            flow_SLR_debug();
         else
             flow_regular();
     }
