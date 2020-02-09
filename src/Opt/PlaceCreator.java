@@ -242,6 +242,110 @@ public class PlaceCreator implements Creator<CompositeGenotype<SiteTypeEnum, Gen
         return map;
     }
 
+    public static Map<SiteTypeEnum, List<List<Site>>> getAllAvailableSites(Device dev) {
+        // get all available sites
+        Site[] allDSPSites = dev.getAllCompatibleSites(DSP_SITE_TYPE);
+        Site[] RAMB180 = dev.getAllCompatibleSites(BRAM_SITE_TYPE);
+        Site[] RAMB181 = dev.getAllCompatibleSites(BRAM_SITE_TYPE2);
+        List<Site> RAMB = new ArrayList<>(Arrays.asList(RAMB180));
+        RAMB.addAll(Arrays.asList(RAMB181));
+        Site[] allBRAMSites = RAMB.toArray(new Site[0]);
+        Site[] allURAMSites = dev.getAllCompatibleSites(URAM_SITE_TYPE);
 
+        Collections.sort(Arrays.asList(allDSPSites), (site, t1) -> {
+            // ascending order
+            String name0 = site.getName();
+            String name1 = t1.getName();
+            int col0 = Integer.parseInt(name0.substring(name0.indexOf('X') + 1, name0.indexOf('Y')));
+            int col1 = Integer.parseInt(name1.substring(name1.indexOf('X') + 1, name1.indexOf('Y')));
+            //return col1-col0;
+            return col0 - col1;
+        });
+        Collections.sort(Arrays.asList(allBRAMSites), (site, t1) -> {
+            // descending order
+            String name0 = site.getName();
+            String name1 = t1.getName();
+            int col0 = Integer.parseInt(name0.substring(name0.indexOf('X') + 1, name0.indexOf('Y')));
+            int col1 = Integer.parseInt(name1.substring(name1.indexOf('X') + 1, name1.indexOf('Y')));
+            //return col1-col0;
+            return col0 - col1;// ascending order
+        });
+        Collections.sort(Arrays.asList(allURAMSites), (site, t1) -> {
+            // descending order
+            String name0 = site.getName();
+            String name1 = t1.getName();
+            int col0 = Integer.parseInt(name0.substring(name0.indexOf('X') + 1, name0.indexOf('Y')));
+            int col1 = Integer.parseInt(name1.substring(name1.indexOf('X') + 1, name1.indexOf('Y')));
+            //return col1-col0;
+            return col0 - col1;// ascending order
+        });
+
+        String n = allDSPSites[allDSPSites.length - 1].getName();
+        int max_dsp_col = Integer.parseInt(n.substring(n.indexOf("X") + 1, n.indexOf("Y")));
+        n = allBRAMSites[allBRAMSites.length - 1].getName();
+        int max_bram_col = Integer.parseInt(n.substring(n.indexOf("X") + 1, n.indexOf("Y")));
+        n = allURAMSites[allURAMSites.length - 1].getName();
+        int max_uram_col = Integer.parseInt(n.substring(n.indexOf("X") + 1, n.indexOf("Y")));
+
+        List<List<Site>> DSPSites = new ArrayList<>();
+        List<List<Site>> BRAMSites = new ArrayList<>();
+        List<List<Site>> URAMSites = new ArrayList<>();
+        for (int i = 0; i <= max_dsp_col; i++)
+            DSPSites.add(new ArrayList<>());
+        for (int i = 0; i <= max_bram_col; i++)
+            BRAMSites.add(new ArrayList<>());
+        for (int i = 0; i <= max_uram_col; i++)
+            URAMSites.add(new ArrayList<>());
+
+        for (Site s : allDSPSites) {
+            String name = s.getName();
+            int col = Integer.parseInt(name.substring(name.indexOf('X') + 1, name.indexOf('Y')));
+            DSPSites.get(col).add(s);
+        }
+
+        for (Site s : allBRAMSites) {
+            String name = s.getName();
+            int col = Integer.parseInt(name.substring(name.indexOf('X') + 1, name.indexOf('Y')));
+            BRAMSites.get(col).add(s);
+
+        }
+        for (Site s : allURAMSites) {
+            String name = s.getName();
+            int col = Integer.parseInt(name.substring(name.indexOf('X') + 1, name.indexOf('Y')));
+            URAMSites.get(col).add(s);
+        }
+
+        // clear empty lists
+        for (int i = DSPSites.size() - 1; i >= 0; i--) {
+            if (DSPSites.get(i).isEmpty())
+                DSPSites.remove(i);
+        }
+        for (int i = BRAMSites.size() - 1; i >= 0; i--) {
+            if (BRAMSites.get(i).isEmpty())
+                BRAMSites.remove(i);
+        }
+        for (int i = URAMSites.size() - 1; i >= 0; i--) {
+            if (URAMSites.get(i).isEmpty())
+                URAMSites.remove(i);
+        }
+
+        Map<SiteTypeEnum, List<List<Site>>> map = new HashMap<>();
+        map.put(DSP_SITE_TYPE, DSPSites);
+        map.put(BRAM_SITE_TYPE, BRAMSites);
+        map.put(URAM_SITE_TYPE, URAMSites);
+
+        for (SiteTypeEnum key : map.keySet())
+            for (List<Site> sites : map.get(key))
+                Collections.sort(sites, (site, t1) -> {
+                    String name0 = site.getName();
+                    String name1 = t1.getName();
+                    int row0 = Integer.parseInt(name0.substring(name0.indexOf('Y') + 1));
+                    int row1 = Integer.parseInt(name1.substring(name1.indexOf('Y') + 1));
+                    return row0 - row1;// ascending order
+                });
+
+
+        return map;
+    }
 }
 

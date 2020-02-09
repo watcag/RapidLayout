@@ -318,7 +318,8 @@ public class AutoPipeline {
                 16, 16, 16, 16, 16, 16, 8, 8};
         for (int block = 0; block < blockn; block++) {
             for (int i = 0; i < srcEDIFCells.length; i++) {
-                //if (i > 1) continue; // only pipeline URAMs
+                /* we only pipeline URAMs for now, BRAM pipelining is not fully supported yet. */
+                if (i > 1) continue; // only pipeline URAMs
                 for (int pin = 0; pin < numberofPin[i]; pin++) {
                     String srcEDIFCell = srcEDIFCells[i].replaceAll("block", Integer.toString(block));
                     String srcPortInst = srcPortInsts[i].replaceAll("pin", Integer.toString(pin));
@@ -327,8 +328,7 @@ public class AutoPipeline {
                     String name = namePrefix[i] + "pipeline_" + i + "_" + pin;
                     name = name.replaceAll("block", Integer.toString(block));
                     System.out.println("Inserting: " + srcEDIFCell + " -> " + dstEDIFCell + " : " + name);
-                    //insert_reg(d, srcEDIFCell, srcPortInst, dstEDIFCell, dstPortInst, name, 4); // we used this for full-chip
-                    insert_reg_2(d, srcEDIFCell, srcPortInst, dstEDIFCell, dstPortInst, name, nreg, "pipeline_" + i + "_" + pin);
+                    insert_reg(d, srcEDIFCell, srcPortInst, dstEDIFCell, dstPortInst, name, nreg, "pipeline_" + i + "_" + pin);
                     System.out.println("pipeline depth = " + nreg);
                 }
             }

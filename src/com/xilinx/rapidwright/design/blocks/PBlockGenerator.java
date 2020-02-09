@@ -134,9 +134,9 @@ public class PBlockGenerator {
 					throw new RuntimeException("ERROR: Couldn't load device for part: " +
 							line.split("\\s+")[3] + " (" +  partName + ")");
 				}
-			}else if(line.startsWith("| CLB LUTs")){
+			}else if(line.startsWith("| CLB LUTs") || line.startsWith("| Slice LUTs")){
 				lutCount = Integer.parseInt(line.split("\\s+")[4]);
-			}else if(line.startsWith("| CLB Registers")){
+			}else if(line.startsWith("| CLB Registers") || line.startsWith("| Slice Registers")){
 				regCount = Integer.parseInt(line.split("\\s+")[4]);				
 			}else if(line.startsWith("|   LUT as Memory")){
 				lutRAMCount = Integer.parseInt(line.split("\\s+")[5]);
@@ -146,14 +146,14 @@ public class PBlockGenerator {
 				bram18kCount = Integer.parseInt(line.split("\\s+")[3]);
 			}else if(line.startsWith("| DSPs")){
 				dspCount = Integer.parseInt(line.split("\\s+")[3]);
-			}else if(line.startsWith("| CARRY8")){
+			}else if(line.startsWith("| CARRY")){
 				carryCount = Integer.parseInt(line.split("\\s+")[3]);
 			}
 		}
 		
 		if(debug){
 			System.out.println("Parsed report: " + reportFileName);
-			System.out.println("  Device: " + dev.getDeviceName());
+			System.out.println("  Device: " + dev.getName());
 			System.out.println("    LUTs: " + lutCount);
 			System.out.println("    DSPs: " + dspCount);
 			System.out.println("18kBRAMs: " + bram18kCount);
@@ -248,7 +248,7 @@ public class PBlockGenerator {
 		
 		int totalRows = dev.getRows();
 		int totalColumns = dev.getColumns();
-		FamilyType devArchitecture = PartNameTools.getPart(dev.getDeviceName()).getArchitecture();
+		FamilyType devArchitecture = PartNameTools.getPart(dev.getName()).getArchitecture();
 		
 		// algorithm spirals outward to fill needs
 		int c = cStart;
@@ -369,7 +369,7 @@ public class PBlockGenerator {
 			
 			// check to see if the maximum bounds of the spiral have exceeded the tile dimensions
 			}else if(minR < 0 && minC < 0 && maxR >= totalRows && maxC >=totalColumns){
-				MessageGenerator.briefErrorAndExit("PBlock Generator Error: Design is too large to be constrained on the device " + dev.getDeviceName());
+				MessageGenerator.briefErrorAndExit("PBlock Generator Error: Design is too large to be constrained on the device " + dev.getName());
 			}
 			
 			// Let's keep tabs on how many NULL tile columns we are including

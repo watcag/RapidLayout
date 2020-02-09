@@ -601,9 +601,16 @@ public class Experiments {
 
         //clean_pipeline();
 
-        fixed_pipelining();
+        //fixed_pipelining();
 
         //manual_placement_timing();
+
+        String xdc = System.getProperty("RAPIDWRIGHT_PATH") + "/src/verilog/dsp_conv_chip.xdc";
+        String output = System.getProperty("RAPIDWRIGHT_PATH") + "/result/blockNum=480.xdc";
+        Map<Integer, List<Site[]>> result = Tool.getMapFromXDCRobust(xdc, "vu37p", 480);
+        PrintWriter pr = new PrintWriter(new FileWriter(output), true);
+        Tool.write_XDC(result, pr);
+        pr.close();
 
     }
 

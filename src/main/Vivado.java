@@ -250,9 +250,11 @@ public class Vivado {
         try (FileWriter write = new FileWriter(tcl_path)) {
             PrintWriter printWriter = new PrintWriter(write, true);
             printWriter.println("open_checkpoint " + placedDCP);
-            //printWriter.println("create_clock -period 1.000 -waveform {0.000 0.500} [get_nets clk];");
             PBlockConstraint(printWriter, placement, device);
-            printWriter.println("place_design; route_design; report_timing");
+            printWriter.println("place_design;");
+            printWriter.println("create_clock -period 1.000 -waveform {0.000 0.500} [get_nets clk];");
+            printWriter.println("route_design");
+            printWriter.println("report_timing;");
             printWriter.println("write_checkpoint -force -file " + output_path);
             printWriter.println("write_edf -force -file " + output_edif);
             printWriter.println("exit");

@@ -57,6 +57,7 @@ public class EDIFCell extends EDIFPropertyObject {
 		super(name);
 		if(lib != null) lib.addCell(this);
 	}
+	
 	protected EDIFCell(){
 		
 	}
@@ -351,6 +352,10 @@ public class EDIFCell extends EDIFPropertyObject {
 	
 	public boolean isPrimitive(){
 		return getLibrary().getName().equals(EDIFTools.EDIF_LIBRARY_HDI_PRIMITIVES_NAME) && (instances == null || instances.size() == 0) && (nets == null || nets.size() == 0);
+	}
+	
+	public boolean isLeafCellOrBlackBox() {
+		return (instances == null || instances.size() == 0) && (nets == null || nets.size() == 0);
 	}
 	
 	/**

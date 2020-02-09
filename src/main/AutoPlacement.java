@@ -324,8 +324,8 @@ public class AutoPlacement {
         final boolean visualization = Boolean.parseBoolean(prop.getProperty("opt_visual"));
         final int depth = Integer.parseInt(prop.getProperty("pipelineDepth"));
 
-        // experiment config
-        int blocknum = 1; // TODO: automatically determine blocknum
+        MinRect mr = new MinRect(device, 18, 8, 2);
+        int blocknum = mr.getBlocknum();
         String method = prop.getProperty("method");
 
         // optimization parameters
@@ -334,9 +334,9 @@ public class AutoPlacement {
         int children = 50;
         double crossoverR = 0.98;
         int x_min = 0;
-        int x_max = 6000; // all columns
+        int x_max = 6000; // use all columns
         int y_min = 0;
-        int y_max = 240; // TODO: automatically determine min replicating rectangle
+        int y_max = mr.getYmax();
 
         // set up paths
         String root = System.getProperty("RAPIDWRIGHT_PATH") + "/";
@@ -369,7 +369,7 @@ public class AutoPlacement {
 
         /* replicate placement to one SLR */
         result = AutoPlacement.populateFixed(result, device, 2);
-        blocknum *= 2;
+        blocknum *= mr.getReplication();
         xdc_result = results + "blockNum=" + blocknum + ".xdc";
         PrintWriter pr = new PrintWriter(new FileWriter(xdc_result), true);
         Tool.write_XDC(result, pr);
@@ -395,7 +395,7 @@ public class AutoPlacement {
         System.out.println(s);
         System.out.println(">>>-----------------------------------------------");
 
-        d = Vivado.legalize_process(d);
+        //d = Vivado.legalize_process(d);
 
         /* pipelining */
         AutoPipeline.fixed_pipeline(d, depth, blocknum);
@@ -427,7 +427,7 @@ public class AutoPlacement {
 
     public static void flow_SLR_debug() throws IOException {
         int blockn = 1;
-        int depth = 4;
+        int depth = 3;
         String device = "xcvu11p";
         String part = new Design("name", device).getPartName();
 
@@ -499,7 +499,7 @@ public class AutoPlacement {
         Properties prop = Tool.getProperties();
         final boolean useSLR = Boolean.parseBoolean(prop.getProperty("SLRCopy"));
         if (useSLR)
-            flow_SLR_debug();
+            flow_SLR();
         else
             flow_regular();
     }
