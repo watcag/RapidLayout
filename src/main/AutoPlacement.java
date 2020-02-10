@@ -481,6 +481,63 @@ public class AutoPlacement {
 
     }
 
+    public static void flow_manual_placement() throws IOException {
+        // read config
+        Properties prop = Tool.getProperties();
+        String device = prop.getProperty("device");
+        String part = new Design("name", device).getPartName();
+
+        // Switches
+        final boolean rapidSynth = Boolean.parseBoolean(prop.getProperty("rapidSynth"));
+        final boolean vivado_verbose = Boolean.parseBoolean(prop.getProperty("vivado_verbose"));
+
+        // experiment config
+        int blocknum = 480;
+        int depth = 4;
+
+        // set up paths
+        String root = System.getProperty("RAPIDWRIGHT_PATH") + "/";
+        String checkpoint = root + "checkpoint/";
+        String results = root + "result/";
+
+
+        /*  --- read manual placement solution --- */
+        Map<Integer, List<Site[]>> result = Tool.getMapFromXDCRobust(root + "src/verilog/dsp_conv_chip.xdc", device, blocknum);
+
+        /* Synthesis */
+        Design d;
+        System.out.println("start synthesis...");
+        if (rapidSynth)
+            d = Vivado.synthesize_with_seed(blocknum, device, part, false, vivado_verbose);
+        else
+            d = Vivado.synthesize_vivado(blocknum, part, depth, vivado_verbose);
+        d.setAutoIOBuffers(false); // out of context mode
+        System.out.println("synthesis finished");
+
+        /* Placement */
+        long start_time = System.nanoTime();
+        System.out.println("Placement Start...");
+        for (Integer index : result.keySet()) {
+            List<Site[]> blockConfig = result.get(index);
+            place_block(d, index, blockConfig);
+        }
+        System.out.println("Site-Routing ...");
+        d.routeSites();
+        long end_time = System.nanoTime();
+
+        System.out.println(">>>-----------------------------------------------");
+        final String s = "RapidWright Hard Block Placement time = " + (end_time - start_time) / 1e9
+                + " s, which is " + (end_time - start_time) / 1e9 / 60 + " min";
+        System.out.println(s);
+        System.out.println(">>>-----------------------------------------------");
+
+        String placed_design = checkpoint + "blockNum=" + blocknum + "_placed.dcp";
+
+        d.writeCheckpoint(placed_design);
+
+        Vivado.finishPlacementNRoute_2(placed_design, blocknum, result, device, vivado_verbose);
+    }
+
 
     public static void main(String[] args) throws IOException {
         // set up env variable

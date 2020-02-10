@@ -251,8 +251,8 @@ public class Vivado {
             PrintWriter printWriter = new PrintWriter(write, true);
             printWriter.println("open_checkpoint " + placedDCP);
             PBlockConstraint(printWriter, placement, device);
-            printWriter.println("place_design;");
             printWriter.println("create_clock -period 1.000 -waveform {0.000 0.500} [get_nets clk];");
+            printWriter.println("place_design;");
             printWriter.println("route_design");
             printWriter.println("report_timing;");
             printWriter.println("write_checkpoint -force -file " + output_path);

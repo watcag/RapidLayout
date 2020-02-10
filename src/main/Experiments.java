@@ -428,9 +428,8 @@ public class Experiments {
     public static void manual_placement_timing() throws IOException {
 
         int depth = 4;
-        String device = "xcvu37p";
+        String device = "xcvu11p";
         String part = new Design("name", device).getPartName();
-        //String part = "xcvu37p-fsvh2892-3-e-es1";
         int block_num = 480;
         String tcl_path = System.getProperty("RAPIDWRIGHT_PATH") + "/tcl/manual_" + depth + ".tcl";
         String output_path = System.getProperty("RAPIDWRIGHT_PATH") + "/checkpoint/manual_pipeline_" + depth + ".dcp";
