@@ -1,22 +1,38 @@
-from typing import KeysView
-
+import argparse
 import matplotlib.pyplot as plt
 import matplotlib.patches as patches
-from scipy.spatial import ConvexHull
+from matplotlib.patches import Patch
 import numpy as np
 import os
-import math
-from colour import Color
-import argparse
-from pathlib import Path
+from matplotlib.pyplot import rcParams
+rcParams['font.family'] = 'serif'
+rcParams['font.serif'] = ['DejaVu Serif']
 
 # dsp = 0, bram = 1, uram = 2
-types = [0, 1, 1, 0, 0, 0, 1, 0, 2,
+vu11p = [0, 1, 1, 0, 0, 0, 1, 0, 2,
          0, 0, 1, 0, 1, 0, 0, 0, 0, 1, 1, 0, 0, 2,
          0, 1, 0, 1, 0, 2,
          0, 0, 1, 0, 1, 0, 2,
          0, 0, 0, 0, 1, 0, 2,
          0, 0, 0, 0, 0, 1, 1, 0]
+
+vu37p = [0, 1, 1, 0, 0, 0, 1, 0, 2,
+         0, 0, 1, 0, 1, 0, 0, 0, 0, 1, 1, 0, 0, 2,
+         0, 1, 0, 1, 0, 2,
+         0, 0, 1, 0, 1, 0, 2,
+         0, 0, 0, 0, 1, 0, 2,
+         0, 0, 0, 0, 0, 1, 1, 0]
+
+# Set up sizes
+gap = 40
+
+# define colors
+dsp_col = '#F9E9A1'
+bram_col = '#94f0f1'
+uram_col = '#f2b1d8'
+dsp_block = '#ebc600'
+bram_block = '#5AB9EA'
+uram_block  = '#bf4aa8'
 
 
 def readXDC(f):
@@ -47,7 +63,7 @@ def drawDSP(ax, site, gap, color, yOffset=10):
     Y = int(site.split('Y', 1)[1], 10)  # base 10
     count = 0
     x = 10
-    for type in types:
+    for type in vu11p:
         # move x
         if type == 0:  # DSP
             if count == X:
@@ -72,7 +88,7 @@ def drawBRAM(ax, site, gap, color, yOffset=10):
     Y = int(site.split('Y', 1)[1], 10)  # base 10
     count = 0
     x = 10
-    for type in types:
+    for type in vu11p:
         # move x
         if type == 0:  # DSP
             x += 10 + gap
@@ -97,7 +113,7 @@ def drawURAM(ax, site, gap, color, yOffset=10):
     Y = int(site.split('Y', 1)[1], 10)  # base 10
     count = 0
     x = 10
-    for type in types:
+    for type in vu11p:
         # move x
         if type == 0:  # DSP
             x += 10 + gap
@@ -147,31 +163,24 @@ def calcPolygon(input):
 
 
 
-
-
-
-def drawTiles(ax, sites, color):
-    # add convex hull
-    # hull = ConvexHull(sites)
-    # simplices = hull.vertices
-    # length = simplices.shape[0]
-    # vertices = np.zeros(shape=(length, 2))
-    # for i in range(len(hull.vertices)):
-    #     simplex = simplices[i]
-    #     vertices[i, 0] = sites[simplex,0]
-    #     vertices[i, 1] = sites[simplex,1]
+def drawTiles(ax, sites, color, alpha=0.1):
     vertices = calcPolygon(sites)
-    polygon = patches.Polygon(vertices, True, facecolor=color, edgecolor=color, alpha=0.1)
+    polygon = patches.Polygon(vertices, True, facecolor=color, edgecolor=color, alpha=alpha)
+    ax.add_patch(polygon)
+
+def drawTileHighlight(ax, sites):
+    vertices = calcPolygon(sites)
+    polygon = patches.Polygon(vertices, True, facecolor=(0,0,0,0.1), edgecolor='k', linewidth=2)
     ax.add_patch(polygon)
 
 
 def drawBackGround(ax, width, height, gap):
-    dsp_color = '#cdd422'
-    bram_color = '#94f0f1'
-    uram_color = '#f2b1d8'
+    dsp_color = dsp_col
+    bram_color = bram_col
+    uram_color = uram_col
     x = 10  # starting point
     y = 10  # bottom-left y
-    for type in types:
+    for type in vu11p:
         r = patches.Rectangle
         if type == 0:  # DSP
             r = patches.Rectangle((x, y), 10, height, facecolor=dsp_color)
@@ -185,99 +194,25 @@ def drawBackGround(ax, width, height, gap):
         ax.add_patch(r)
 
 
-if __name__ == "__main__":
-    parser = argparse.ArgumentParser(description='Please input the result xdc file')
-    parser.add_argument('filename', type=str, help='the result xdc file to visualize')
-    args = parser.parse_args()
-    filename = args.filename
-    saveDir = str(Path.home()) + "/RapidWright/visual/"
-
+def draw_png(filename, saveDir):
     dict = readXDC(filename)
     name = filename.split('/')[-1].split('.', 1)[0]
-    print(name)
-    saveDir = saveDir + name + "/"
-    print(saveDir)
     if not os.path.exists(saveDir):
         os.makedirs(saveDir)
 
-    # Set up sizes
-    gap = 40
-    width = 560 + gap * (len(types) - 1)
-    # height = 5414.4
-    height = 1000
+    keys = list(dict.keys())  # keys are integer, which is block index
 
-    keys = list(dict.keys()) # keys are integer, which is block index
-    # highlight color
-    red = Color("red")
-    for i in range(len(keys)):
-
-        # select which block to draw
-        if i > 1:
-            continue
-
-        color = Color('red').get_rgb()
-        # Create figure and axes
-        fig, ax = plt.subplots(1)
-        fig.set_size_inches(width / 100, height / 100)
-        ax.set_xlim(0, width + 20)
-        ax.set_ylim(0, height + 20)
-
-        # Create a Rectangle Patch (board)
-        rect = patches.Rectangle((10, 10), width, height, linewidth=1, facecolor='#dddddd')
-        ax.add_patch(rect)
-
-        # draw hard block column background
-        drawBackGround(ax, width, height, gap)
-
-        # draw un-highlighted blocks
-        for j in range(len(keys)):
-            key = keys[j]
-            entries = dict.get(key)
-            for pair in entries:
-                site = pair[0]
-                cell = pair[1]
-                if site.startswith('DSP'):
-                    drawDSP(ax, site, gap, '#ffdc6a')
-                elif site.startswith('RAMB'):
-                    drawBRAM(ax, site, gap, '#00c07f')
-                elif site.startswith('URAM'):
-                    drawURAM(ax, site, gap, '#bf4aa8')
-
-        # draw the highlighted block
-        key = keys[i]
-        entries = dict.get(key)
-        # this array stores vertices of each hard block rectangle
-        sites = np.zeros(shape=(len(entries) * 4, 2))
-        x = 0
-        y = 0
-        for pair in entries:
-            site = pair[0]
-            cell = pair[1]
-            if site.startswith('DSP'):
-                x,y = drawDSP(ax, site, gap, color)  # '#ffdc6a'
-                # drawDSP(ax, site, '#ffdc6a')
-            elif site.startswith('RAMB'):
-                x,y = drawBRAM(ax, site, gap, color)  # '#8bf0ba'
-                # drawBRAM(ax, site, '#00c07f')
-            elif site.startswith('URAM'):
-                x,y = drawURAM(ax, site, gap, color)  # ''#bf4aa8''
-                # drawURAM(ax, site, '#bf4aa8')
-            for index in range(4):
-                sites[entries.index(pair) * 4 + index, 0] = x[index]
-                sites[entries.index(pair) * 4 + index, 1] = y[index]
-        drawTiles(ax, sites, '#000000')
-
-        # plt.show()
-        plt.savefig(saveDir + 'visualize-{}.png'.format(i))
-        plt.close()
-        print(saveDir + 'visualize-{}.png'.format(i))
+    width = 560 + gap * (len(vu11p) - 1)
+    height = 5414.4 if len(keys) > 80 else 1000
+    fontsize = 80 if len(keys) > 80 else 40
+    rcParams.update({'font.size': fontsize})
 
     # draw transparent polygons on a new image
-    fig, ax = plt.subplots(1)
+    fig, ax = plt.subplots(figsize=(256,100))
     fig.set_size_inches(width / 100, height / 100)
     ax.set_xlim(0, width + 20)
     ax.set_ylim(0, height + 20)
-    rect = patches.Rectangle((10, 10), width, height, linewidth=1, facecolor='#dddddd')
+    rect = patches.Rectangle((10, 10), width, height, linewidth=1, facecolor='#f6f6f6')
     ax.add_patch(rect)
     drawBackGround(ax, width, height, gap)
     for j in range(len(keys)):
@@ -286,22 +221,49 @@ if __name__ == "__main__":
         sites = np.zeros(shape=(len(entries) * 4, 2))
         for pair in entries:
             site = pair[0]
-            cell = pair[1]
             x = 0
             y = 0
             if site.startswith('DSP'):
-                x, y = drawDSP(ax, site, gap, '#ffdc6a')
+                x, y = drawDSP(ax, site, gap, dsp_block)
             elif site.startswith('RAMB'):
-                x, y = drawBRAM(ax, site, gap, '#00c07f')
+                x, y = drawBRAM(ax, site, gap, bram_block)
             elif site.startswith('URAM'):
-                x, y = drawURAM(ax, site, gap, '#bf4aa8')
+                x, y = drawURAM(ax, site, gap, uram_block)
 
             for index in range(4):
                 sites[entries.index(pair) * 4 + index, 0] = x[index]
                 sites[entries.index(pair) * 4 + index, 1] = y[index]
-
         drawTiles(ax, sites, '#000000')
 
-    plt.savefig(saveDir + 'visualize-all.png')
+
+# add axis
+    legend_elements = [
+        Patch(facecolor=dsp_block, label='DSP48'),
+        Patch(facecolor=bram_block, label='BRAM'),
+        Patch(facecolor=uram_block, label='URAM')
+    ]
+
+    # ax.legend(handles=legend_elements, prop={'size':13})
+
+    # plt.savefig(saveDir + name + '.png', dpi=50)
+    # plt.close()
+    plt.savefig(saveDir + name + '.pdf')
     plt.close()
-    print(saveDir + 'visualize-all.png')
+    print(saveDir + name + '.pdf')
+    return saveDir + name + '.pdf'
+
+
+if __name__ == "__main__":
+    parser = argparse.ArgumentParser(description='Please input the result xdc file, visualization image output directory')
+    parser.add_argument('filename', type=str, help='the result xdc file to visualize')
+    parser.add_argument('dir', type=str, help='the output directory of visualization file')
+    args = parser.parse_args()
+    filename = args.filename
+    saveDir = args.dir
+
+    if not os.path.isdir(saveDir):
+        os.makedirs(saveDir)
+
+    draw_png(filename, saveDir)
+
+

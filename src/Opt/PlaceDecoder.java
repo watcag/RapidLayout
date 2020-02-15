@@ -27,7 +27,6 @@ public class PlaceDecoder implements Decoder<CompositeGenotype<SiteTypeEnum, Gen
     int n_uram = 2;
     final SiteTypeEnum DSP_SITE_TYPE = SiteTypeEnum.DSP48E2;
     final SiteTypeEnum BRAM_SITE_TYPE = SiteTypeEnum.RAMB180;
-    final SiteTypeEnum BRAM_SITE_TYPE2 = SiteTypeEnum.RAMB181;
     final SiteTypeEnum URAM_SITE_TYPE = SiteTypeEnum.URAM288;
     final SiteTypeEnum DSP_LOC = SiteTypeEnum.BITSLICE_TX;
     final SiteTypeEnum BRAM_LOC = SiteTypeEnum.FIFO36;
@@ -36,6 +35,7 @@ public class PlaceDecoder implements Decoder<CompositeGenotype<SiteTypeEnum, Gen
     final SiteTypeEnum BRAM_MAP = SiteTypeEnum.BUFG;
     final SiteTypeEnum URAM_MAP = SiteTypeEnum.LAGUNA;
 
+    @SuppressWarnings({"unchecked", "rawtypes"})
     public Map<Integer, List<Site[]>> decode(CompositeGenotype<SiteTypeEnum, Genotype> genotype) {
         PlaceGenotype<Site> dspColNums = genotype.get(DSP_SITE_TYPE);
         PlaceGenotype<Site> bramColNums = genotype.get(BRAM_SITE_TYPE);
@@ -131,6 +131,7 @@ public class PlaceDecoder implements Decoder<CompositeGenotype<SiteTypeEnum, Gen
         return type: all selected DSP sites organized in column fashion, all selected BRAM & URAM in column fashion
         input distribution: List of List of Integers, representing how many blocks should be put at each column for each type of site
      */
+    @SuppressWarnings({"unchecked", "rawtypes"})
     public Map<SiteTypeEnum, List<Site[]>> selectLocations(List[] distribution, CompositeGenotype<SiteTypeEnum, Genotype> genotype) {
         SiteTypeEnum[] types = new SiteTypeEnum[]{DSP_SITE_TYPE, BRAM_SITE_TYPE, URAM_SITE_TYPE};
         SiteTypeEnum[] loc_keys = new SiteTypeEnum[]{DSP_LOC, BRAM_LOC, URAM_LOC};
@@ -153,7 +154,7 @@ public class PlaceDecoder implements Decoder<CompositeGenotype<SiteTypeEnum, Gen
                 int num_sites = (int) distribution[type].get(col_idx); // how many group of sites to put in current column
 
                 // DEBUG
-                if (start + num_sites - 1 > ((DoubleGenotype) genotype.get(loc_keys[type])).size()) {
+                if (start + num_sites - 1 > ((DoubleGenotypeRe) genotype.get(loc_keys[type])).size()) {
                     System.out.println("type = " + type);
                     int sum = 0;
                     for (int ok : (List<Integer>) distribution[type])
@@ -161,11 +162,11 @@ public class PlaceDecoder implements Decoder<CompositeGenotype<SiteTypeEnum, Gen
                     System.out.println("sum of distribution = " + sum);
                     System.out.println("col index = " + col_idx);
                     System.out.println("length[type] * num_sites = " + num_sites);
-                    System.out.println("size = " + ((DoubleGenotype) genotype.get(loc_keys[type])).size());
+                    System.out.println("size = " + ((DoubleGenotypeRe) genotype.get(loc_keys[type])).size());
 
                 }
 
-                List<Double> locations = ((DoubleGenotype) genotype.get(loc_keys[type])).subList(start, start + num_sites); // location genotype
+                List<Double> locations = ((DoubleGenotypeRe) genotype.get(loc_keys[type])).subList(start, start + num_sites); // location genotype
                 List<Site> thisColAvail = (List<Site>) allSites[type].get(col_idx);
                 int siteNumofCol = thisColAvail.size(); // how many elements available in this column
                 List<Integer> heads = locations.stream().map(x -> (int) floor(siteNumofCol * x)).sorted().collect(Collectors.toList());
@@ -196,6 +197,8 @@ public class PlaceDecoder implements Decoder<CompositeGenotype<SiteTypeEnum, Gen
         return map;
     }
 
+
+    @SuppressWarnings({"unchecked", "rawtypes"})
     public Map<Integer, List<Site[]>> Mapping(int block_num, Map<SiteTypeEnum, List<Site[]>> chosenSites, CompositeGenotype<SiteTypeEnum, Genotype> genotype) {
         Map<Integer, List<Site[]>> map = new HashMap<>(); // stores the final configuration for each block
         SiteTypeEnum[] types = new SiteTypeEnum[]{DSP_SITE_TYPE, BRAM_SITE_TYPE, URAM_SITE_TYPE};
@@ -223,8 +226,10 @@ public class PlaceDecoder implements Decoder<CompositeGenotype<SiteTypeEnum, Gen
                         System.out.println("number = " + (int) mapping[type].get(i + block_num));
                     }
 
-                    sites.addAll(Arrays.asList(chosenSites.get(types[type]).get(index0[0])).subList(index0[1] * lengths[type], index0[1] * lengths[type] + lengths[type]));
-                    sites.addAll(Arrays.asList(chosenSites.get(types[type]).get(index1[0])).subList(index1[1] * lengths[type], index1[1] * lengths[type] + lengths[type]));
+                    sites.addAll(Arrays.asList(chosenSites.get(types[type]).get(index0[0]))
+                            .subList(index0[1] * lengths[type], index0[1] * lengths[type] + lengths[type]));
+                    sites.addAll(Arrays.asList(chosenSites.get(types[type]).get(index1[0]))
+                            .subList(index1[1] * lengths[type], index1[1] * lengths[type] + lengths[type]));
 
                 } else {
                     Integer[] index0 = findIndex(chosenSites, types[type], (int) mapping[type].get(i), lengths[type]);

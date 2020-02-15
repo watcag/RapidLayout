@@ -3,8 +3,6 @@ package main;
 import Utils.Utils;
 import com.xilinx.rapidwright.design.Design;
 import com.xilinx.rapidwright.design.ModuleInst;
-import com.xilinx.rapidwright.design.Net;
-import com.xilinx.rapidwright.device.ClockRegion;
 import com.xilinx.rapidwright.device.Site;
 import com.xilinx.rapidwright.edif.EDIFCell;
 import com.xilinx.rapidwright.edif.EDIFCellInst;
@@ -412,7 +410,7 @@ public class Experiments {
         d.writeCheckpoint(placedDCPPath);
 
         // finish route
-        double freq = Vivado.finishPlacementNRoute_2(placedDCPPath, blocknum, result, device, true);
+        double freq = Vivado.finishPlacementNRoutePBlock(placedDCPPath, blocknum, result, device, true);
         System.out.println("$$$ TIMING RESULT : block num  = " + blocknum + "\t frequency = " + freq / 1e6 + "MHz");
         log.println("$$$ TIMING RESULT : block num  = " + blocknum + "\t frequency = " + freq / 1e6 + " MHz");
 

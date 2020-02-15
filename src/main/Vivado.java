@@ -240,9 +240,9 @@ public class Vivado {
         return frequency;
     }
 
-    public static double finishPlacementNRoute_2(String placedDCP, int block_num,
-                                                 Map<Integer, List<Site[]>> placement, String device,
-                                                 boolean verbose) throws IOException {
+    public static double finishPlacementNRoutePBlock(String placedDCP, int block_num,
+                                                     Map<Integer, List<Site[]>> placement, String device,
+                                                     boolean verbose) throws IOException {
         String tcl_path = tcl + "finish_placement.tcl";
         String output_path = checkpoint + "blockNum=" + block_num + "_routed.dcp";
         String output_edif = checkpoint + "blockNum=" + block_num + "_routed.edf";

@@ -7,18 +7,13 @@ import java.lang.reflect.Constructor;
 import java.util.List;
 import java.util.Random;
 
-public class PlaceGenotype<V> extends DoubleGenotype {
+public class DoubleGenotypeRe extends DoubleGenotype {
+
     private static final long serialVersionUID = 1L;
 
-    protected final List<List<V>> available;
 
-    public PlaceGenotype(List<List<V>> available) {
+    public DoubleGenotypeRe() {
         super(0, 100);
-        this.available = available;
-    }
-
-    public List<List<V>> getSites(){
-        return available;
     }
 
 
@@ -26,8 +21,8 @@ public class PlaceGenotype<V> extends DoubleGenotype {
     @SuppressWarnings({"unchecked", "rawtypes"})
     public <G extends Genotype> G newInstance() {
         try {
-            Constructor<? extends PlaceGenotype> cstr = this.getClass().getConstructor(List.class);
-            return (G) cstr.newInstance(available);
+            Constructor<? extends DoubleGenotypeRe> cstr = this.getClass().getConstructor();
+            return (G) cstr.newInstance();
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
@@ -35,11 +30,11 @@ public class PlaceGenotype<V> extends DoubleGenotype {
 
     @Override
     public void init(Random random, int n) {
-        //System.out.println("PlaceGenotype Init is called");
         for (int i = 0; i < n; ++i) {
             double lo = this.getLowerBound(i);
             double hi = this.getUpperBound(i);
             double value = lo + random.nextDouble() * (hi - lo);
+            //double value = lo + 0.1 * (hi - lo);
             if (i >= this.size()) {
                 this.add(value);
             } else {
@@ -49,11 +44,10 @@ public class PlaceGenotype<V> extends DoubleGenotype {
 
     }
 
+
     public void init(List<Double> value) {
         for (int i = 0 ; i < value.size(); i++) {
-            double lo = this.getLowerBound(i);
-            double hi = this.getUpperBound(i);
-            double v = lo + value.get(i) * (hi - lo);
+            double v = value.get(i);
             if (i >= this.size()) {
                 this.add(v);
             } else {
@@ -61,4 +55,5 @@ public class PlaceGenotype<V> extends DoubleGenotype {
             }
         }
     }
+
 }

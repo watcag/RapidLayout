@@ -69,22 +69,10 @@ public class PlaceCreator implements Creator<CompositeGenotype<SiteTypeEnum, Gen
 
 
     public CompositeGenotype<SiteTypeEnum, Genotype> create() {
-        // for DSP, I can first get all available DSP sites by column
-        // and for each block, take 9 consecutive DSP from 1 column, and repeat
         Design d = new Design("design", device);
         Device dev = d.getDevice();
 
         Map<SiteTypeEnum, List<List<Site>>> map = getAvailableSites(dev, x_min, x_max, y_min, y_max);
-
-       /* System.out.println("Available Hard Blocks: ");
-        System.out.println("DSP: " + map.get(DSP_SITE_TYPE).size() + " x " + map.get(DSP_SITE_TYPE).get(0).size());
-        System.out.println("BRAM: " + map.get(BRAM_SITE_TYPE).size() + " x " + map.get(BRAM_SITE_TYPE).get(0).size());
-        System.out.println("URAM: " + map.get(URAM_SITE_TYPE).size() + " x " + map.get(URAM_SITE_TYPE).get(0).size());
-        int max_dsp_num = map.get(DSP_SITE_TYPE).get(0).size() / 9 * map.get(DSP_SITE_TYPE).size() * 2;
-        int max_bram_num = map.get(BRAM_SITE_TYPE).get(0).size() / 4 * map.get(BRAM_SITE_TYPE).size() * 2;
-        int max_uram_num = map.get(URAM_SITE_TYPE).get(0).size() / 2 * map.get(URAM_SITE_TYPE).size();
-        System.out.println("max number of block = " + Math.min(Math.min(max_dsp_num, max_bram_num), max_uram_num));*/
-
 
         CompositeGenotype<SiteTypeEnum, Genotype> genotype = new CompositeGenotype<>();
         // distribution
@@ -92,9 +80,9 @@ public class PlaceCreator implements Creator<CompositeGenotype<SiteTypeEnum, Gen
         PlaceGenotype<Site> bramColNum = new PlaceGenotype<>(map.get(BRAM_SITE_TYPE));
         PlaceGenotype<Site> uramColNum = new PlaceGenotype<>(map.get(URAM_SITE_TYPE));
         // location
-        DoubleGenotype dspLoc = new DoubleGenotype();
-        DoubleGenotype bramLoc = new DoubleGenotype();
-        DoubleGenotype uramLoc = new DoubleGenotype();
+        DoubleGenotypeRe dspLoc = new DoubleGenotypeRe();
+        DoubleGenotypeRe bramLoc = new DoubleGenotypeRe();
+        DoubleGenotypeRe uramLoc = new DoubleGenotypeRe();
         // mapping
         PermutationGenotype<Integer> dspMapping = new PermutationGenotype<>();
         PermutationGenotype<Integer> bramMapping = new PermutationGenotype<>();

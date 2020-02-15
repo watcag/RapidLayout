@@ -406,7 +406,7 @@ public class AutoPlacement {
         if (file.exists())
             file.delete();
         d.writeCheckpoint(placedDCPPath);
-        double freq = Vivado.finishPlacementNRoute_2(placedDCPPath, blocknum, result, device, vivado_verbose);
+        double freq = Vivado.finishPlacementNRoutePBlock(placedDCPPath, blocknum, result, device, vivado_verbose);
 
         /* read in routed SLR and replicate */
         String routedSLR = checkpoint + "blockNum=" + blocknum + "_routed.dcp";
@@ -418,7 +418,7 @@ public class AutoPlacement {
                 + " s, which is " + (end_time - start_time) / 1e9 / 60 + " min";
         System.out.println(s);
         System.out.println(">>>-----------------------------------------------");
-        full_chip_routed.flattenDesign();
+        //full_chip_routed.flattenDesign();
         full_chip_routed.writeCheckpoint(checkpoint + "full-chip_" + device + ".dcp");
 
         /* report clock frequency */
@@ -476,7 +476,7 @@ public class AutoPlacement {
 //
 //        Vivado.vivado_cmd("vivado -mode tcl -source " + tclfile, true);
         String placedDCPPath = System.getProperty("RAPIDWRIGHT_PATH") + "/checkpoint/pipeline.dcp";
-        Vivado.finishPlacementNRoute_2(placedDCPPath, blockn, result, device, true);
+        Vivado.finishPlacementNRoutePBlock(placedDCPPath, blockn, result, device, true);
 
 
     }
@@ -535,7 +535,7 @@ public class AutoPlacement {
 
         d.writeCheckpoint(placed_design);
 
-        Vivado.finishPlacementNRoute_2(placed_design, blocknum, result, device, vivado_verbose);
+        Vivado.finishPlacementNRoutePBlock(placed_design, blocknum, result, device, vivado_verbose);
     }
 
 
