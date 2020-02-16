@@ -1,6 +1,6 @@
 package main;
 
-import Utils.Utils;
+import Utils.Utility;
 import cma.cmaes;
 import com.xilinx.rapidwright.design.Design;
 import com.xilinx.rapidwright.device.Device;
@@ -139,7 +139,7 @@ public class AutoPlacement {
     public static Map<Integer, List<Site[]>> populate(Map<Integer, List<Site[]>> original, String dev){
         Map<Integer, List<Site[]>> replicated = new HashMap<>(original);
 
-        Utils U = new Utils(original, dev);
+        Utility U = new Utility(original, dev);
         Device device = U.getDevice();
         int[] height = U.getHeight();
         int num_repl = U.getURAMColHeight() / height[2];
@@ -170,7 +170,7 @@ public class AutoPlacement {
     public static Map<Integer, List<Site[]>> populateFixed(Map<Integer, List<Site[]>> original, String dev, int num_repl){
         Map<Integer, List<Site[]>> replicated = new HashMap<>(original);
 
-        Utils U = new Utils(original, dev);
+        Utility U = new Utility(original, dev);
         Device device = U.getDevice();
         int[] height = U.getHeight();
         System.out.println("------- Replicate Placement " + num_repl + " times --------");

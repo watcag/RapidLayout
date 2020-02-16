@@ -1,6 +1,6 @@
 package Opt;
 
-import Utils.Utils;
+import Utils.Utility;
 import com.google.inject.Inject;
 import com.google.inject.Module;
 import com.xilinx.rapidwright.device.Site;
@@ -252,7 +252,142 @@ public class StartOptimization {
 
             Map<Integer, List<Site[]>> phenotype = (Map<Integer, List<Site[]>>) best.getPhenotype();
             int blockNum = phenotype.size();
-            Utils U = new Utils(phenotype, device);
+            Utility U = new Utility(phenotype, device);
+            double unitWireLength = U.getUnifiedWireLength();
+            double size = U.getMaxBBoxSize();
+            // write out results
+            System.out.println("Number of Blocks = " + blockNum);
+            System.out.println("WireLengthPerBock = " + unitWireLength);
+            System.out.println("Size = " + size);
+            System.out.println("------------------------");
+
+            Objectives objectives = best.getObjectives();
+            for (Objective objective : objectives.getKeys()) {
+                System.out.println(objective.getName() + " = " + objectives.get(objective).getDouble());
+            }
+
+            map.putAll(phenotype);
+
+        } catch (Exception e) {
+            e.printStackTrace();
+        } finally {
+            task.close();
+        }
+
+        return map;
+    }
+
+    public Map<Integer, List<Site[]>> main(int block_num, String device,
+                                           boolean visual,
+                                           String method,
+                                           int population, int parents, int children, double crossoverR,
+                                           int x_min, int x_max, int y_min, int y_max,
+                                           String prev_placement)
+    {
+
+        Global.method = method;
+        Global.time = "run_at_" + System.currentTimeMillis();
+        int iteration = (int)1e8;
+
+        EvolutionaryAlgorithmModule evolutionaryAlgorithmModule = new EvolutionaryAlgorithmModule();
+        evolutionaryAlgorithmModule.setGenerations(iteration);
+        evolutionaryAlgorithmModule.setAlpha(population); // population size
+        evolutionaryAlgorithmModule.setMu(parents); // number of parents
+        evolutionaryAlgorithmModule.setLambda(children); // number of children
+        evolutionaryAlgorithmModule.setCrossoverRate(crossoverR);
+
+        SimulatedAnnealingModule sa = new SimulatedAnnealingModule();
+        sa.setIterations(iteration);
+
+        Nsga2Module nsga2Module = new Nsga2Module();
+        nsga2Module.setTournament(20);
+
+        CoolingScheduleModule coolingScheduleModule = new CoolingScheduleModule() {
+            @Override
+            protected void config() {
+                bindCoolingSchedule(CoolingScheduleLinear.class);
+            }
+        };
+
+        // initialize placement module and set parameters
+        PlaceModule placementModule = new PlaceModule();
+        placementModule.setBlock_num(block_num);
+        placementModule.setDevice(device);
+        placementModule.setX_min(x_min);
+        placementModule.setX_max(x_max);
+        placementModule.setY_min(y_min);
+        placementModule.setY_max(y_max);
+        placementModule.setMethod(method);
+        placementModule.setPrev_placement(prev_placement);
+
+
+        ViewerModule viewer = new ViewerModule();
+        viewer.setCloseOnStop(false);
+        viewer.setTitle("Placement: " + block_num + "-block " + method);
+
+        Opt4JModule observer = new Opt4JModule() {
+            @Override
+            protected void config() {
+                addOptimizerIterationListener(monitor.class);
+            }
+        };
+
+        // parallel decoding and evalutation
+        IndividualCompleterModule individualCompleterModule = new IndividualCompleterModule();
+        individualCompleterModule.setThreads(100);
+        individualCompleterModule.setType(IndividualCompleterModule.Type.PARALLEL);
+
+        // Optimization Task Initialization
+        Opt4JTask task = new Opt4JTask(false);
+
+        Collection<Module> modules = new ArrayList<>();
+        if (method.equals("EA")) {
+            modules.add(evolutionaryAlgorithmModule);
+            modules.add(nsga2Module);
+            modules.add(individualCompleterModule);
+        } else {
+            modules.add(sa);
+            modules.add(coolingScheduleModule);
+        }
+        modules.add(placementModule);
+        if (visual)
+            modules.add(viewer);
+        modules.add(observer);
+
+        task.init(modules);
+
+        Map<Integer, List<Site[]>> map = new HashMap<>();
+
+        try {
+            task.execute();
+            Archive archive = task.getInstance(Archive.class);
+
+            Individual best = null;
+            int iterator = 0;
+            for (Individual individual : archive) {
+                if (iterator == 0) {
+                    best = individual;
+                    iterator++;
+                    continue;
+                }
+                double sumOfObjectives = 0;
+                for (Objective objective : individual.getObjectives().getKeys())
+                    sumOfObjectives += individual.getObjectives().get(objective).getDouble();
+
+                double sumOfCurrentObjectives = 0;
+                for (Objective objective : best.getObjectives().getKeys())
+                    sumOfCurrentObjectives += best.getObjectives().get(objective).getDouble();
+
+                if (sumOfObjectives < sumOfCurrentObjectives)
+                    best = individual;
+
+                iterator++;
+            }
+
+
+            Map<Integer, List<Site[]>> phenotype = (Map<Integer, List<Site[]>>) best.getPhenotype();
+            int blockNum = phenotype.size();
+            Utility U = new Utility(phenotype, device);
             double unitWireLength = U.getUnifiedWireLength();
             double size = U.getMaxBBoxSize();
             // write out results

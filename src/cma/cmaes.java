@@ -1,6 +1,6 @@
 package cma;
 
-import Utils.Utils;
+import Utils.Utility;
 
 import com.xilinx.rapidwright.design.Design;
 import com.xilinx.rapidwright.device.Device;
@@ -54,7 +54,7 @@ public class cmaes {
                 opt.optimize(goalType, objective, populationSize, initialGuess, sigma, maxEval, maxIter, unbounded);
 
         Map<Integer, List<Site[]>> phenotype = PlaceDecoder.decode(result.getPoint(), selectedSites);
-        Utils U = new Utils(phenotype, device);
+        Utility U = new Utility(phenotype, device);
 
         return U.getUnifiedWireLength();
     }
@@ -183,7 +183,7 @@ public class cmaes {
                 try {
                     PrintWriter pr = new PrintWriter(new FileWriter(converge_data, true), true);
                     Map<Integer, List<Site[]>> placement = PlaceDecoder.decode(current.getPoint(), selectedSites);
-                    Utils U = new Utils(placement, Device);
+                    Utility U = new Utility(placement, Device);
                     wirelength = U.getUnifiedWireLength();
                     size = U.getMaxBBoxSize();
 
@@ -215,7 +215,7 @@ public class cmaes {
                 adapted.put(URAM_MAP, allAvailSites.get(URAM_SITE_TYPE));
                 Map<SiteTypeEnum, List<Site[]>> selectedSites = chooseSiteUniformly(adapted, block_num);
                 Map<Integer, List<Site[]>> placement = PlaceDecoder.decode(current.getPoint(), selectedSites);
-                Utils U = new Utils(placement, Device);
+                Utility U = new Utility(placement, Device);
                 double wirelength = U.getUnifiedWireLength();
                 if (i > 30000 || i % 10 != 0) return wirelength < 4500;
 
@@ -264,7 +264,7 @@ public class cmaes {
                 + " s, which is " + (end_time - start_time) / 1e9 / 60 + " min";
         System.out.println(s);
 
-        Utils U = new Utils(solution, Device);
+        Utility U = new Utility(solution, Device);
         double size = U.getMaxBBoxSize();
         double wireLength = U.getUnifiedWireLength();
 

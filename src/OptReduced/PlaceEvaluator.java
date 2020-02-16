@@ -1,6 +1,6 @@
 package OptReduced;
 
-import Utils.Utils;
+import Utils.Utility;
 import com.google.inject.Inject;
 import org.opt4j.core.Objective;
 import org.opt4j.core.Objectives;
@@ -38,7 +38,7 @@ public class PlaceEvaluator implements Evaluator <Map<Integer, List<Site[]>>> {
             uramSite.addAll(Arrays.asList(phenotype.get(i).get(2)));
         }
 
-        Utils U = new Utils(phenotype, device);
+        Utility U = new Utility(phenotype, device);
 
         double areaPerBlock = U.AreaPerBlock();
         double unifWireLen = U.getUnifiedWireLength();

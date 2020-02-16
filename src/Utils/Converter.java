@@ -96,8 +96,8 @@ public class Converter {
         return i;
     }
 
-    public static CompositeGenotype<SiteTypeEnum, Genotype> convert(Map<Integer, List<Site[]>> result, String device,
-                                                                    int block_num, int x_min, int y_min, int x_max, int y_max) {
+    public static CompositeGenotype<SiteTypeEnum, Genotype> convertFullGeno(Map<Integer, List<Site[]>> result, String device,
+                                                                            int x_min, int y_min, int x_max, int y_max) {
 
         // number of cascaded hard blocks (grouping)
         int dsp_cas = 9;
@@ -328,7 +328,7 @@ public class Converter {
         int y_max = 240;
 
         CompositeGenotype<SiteTypeEnum, Genotype> genotype =
-                convert(result, device, blockn, x_min, y_min, x_max, y_max);
+                convertFullGeno(result, device, x_min, y_min, x_max, y_max);
 
         PlaceDecoder decoder = new PlaceDecoder();
         Map<Integer, List<Site[]>> decoded = decoder.decode(genotype);

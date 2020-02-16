@@ -5,13 +5,14 @@ import com.xilinx.rapidwright.design.Design;
 import com.xilinx.rapidwright.device.Device;
 import com.xilinx.rapidwright.device.Site;
 import com.xilinx.rapidwright.device.SiteTypeEnum;
+import main.Tool;
 import org.opt4j.core.Genotype;
 import org.opt4j.core.genotype.CompositeGenotype;
-import org.opt4j.core.genotype.DoubleGenotype;
 import org.opt4j.core.genotype.PermutationGenotype;
 import org.opt4j.core.problem.Creator;
 import org.opt4j.core.start.Constant;
 
+import java.io.IOException;
 import java.util.*;
 
 
@@ -35,6 +36,8 @@ public class PlaceCreator implements Creator<CompositeGenotype<SiteTypeEnum, Gen
     int x_max = 5000;
     int y_min = 0;
     int y_max = 1500;
+
+    String prev_placement = "";
 
 
     @Inject
@@ -65,6 +68,11 @@ public class PlaceCreator implements Creator<CompositeGenotype<SiteTypeEnum, Gen
     @Inject
     public void setY_max(@Constant(value = "y_max") int y_max){
         this.y_max = y_max;
+    }
+
+    @Inject
+    public void setPrev_placement(@Constant(value = "prev_placement") String prev_placement){
+        this.prev_placement = prev_placement;
     }
 
 
@@ -117,6 +125,18 @@ public class PlaceCreator implements Creator<CompositeGenotype<SiteTypeEnum, Gen
         genotype.put(DSP_MAP, dspMapping);
         genotype.put(BRAM_MAP, bramMapping);
         genotype.put(URAM_MAP, uramMapping);
+
+        // use input placement as initialization
+        Map<Integer, List<Site[]>> prev = null;
+        try {
+            prev = Tool.getMapFromXDCRobust(prev_placement, device, block_num);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        assert prev != null;
+        if (prev.size() > 0) {
+            return Utils.Converter.convertFullGeno(prev, device, x_min, y_min, x_max, y_max);
+        }
 
         return genotype;
 

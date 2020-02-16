@@ -1,7 +1,12 @@
 package Opt;
 
+import com.xilinx.rapidwright.device.Site;
 import org.opt4j.core.problem.ProblemModule;
 import org.opt4j.core.start.Constant;
+
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 public class PlaceModule extends ProblemModule {
 
@@ -26,6 +31,9 @@ public class PlaceModule extends ProblemModule {
     @Constant(value = "method")
     protected String method = "EA";
 
+    @Constant(value = "prev_placement")
+    protected String prev_placement = "";
+
     public int getBlock_num(){ return block_num; }
     public void setBlock_num(int block_num){ this.block_num = block_num; }
 
@@ -46,6 +54,9 @@ public class PlaceModule extends ProblemModule {
 
     public void setMethod(String method){this.method = method;}
     public String getMethod(){return method;}
+
+    public void setPrev_placement(String prev_placement){this.prev_placement = prev_placement;}
+    public String getPrev_placement(){return this.prev_placement;}
 
 
     protected void config (){

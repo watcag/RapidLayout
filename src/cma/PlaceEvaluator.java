@@ -1,10 +1,9 @@
 package cma;
 
-import Utils.Utils;
+import Utils.Utility;
 import com.xilinx.rapidwright.device.Site;
 import com.xilinx.rapidwright.device.SiteTypeEnum;
 import org.apache.commons.math3.analysis.MultivariateFunction;
-import org.opt4j.core.config.annotations.Multi;
 
 import java.util.List;
 import java.util.Map;
@@ -18,7 +17,7 @@ public class PlaceEvaluator {
         @Override
         public double value(double[] doubles) {
             Map<Integer, List<Site[]>> solution = PlaceDecoder.decode(doubles, selectedSites);
-            Utils U = new Utils(solution, device);
+            Utility U = new Utility(solution, device);
             double wireLength = U.getUnifiedWireLength();
             double spread = U.getMaxSpread();
             double size = U.getMaxBBoxSize();

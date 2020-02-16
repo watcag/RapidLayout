@@ -1,6 +1,6 @@
 package main;
 
-import Utils.Utils;
+import Utils.Utility;
 import com.xilinx.rapidwright.design.*;
 import com.xilinx.rapidwright.design.Module;
 import com.xilinx.rapidwright.device.Device;
@@ -78,87 +78,6 @@ public class Tool {
 
         }
         print_line.println("# end");
-    }
-
-    // TODO: obsolete
-    public static void calcFromXDC(String device) throws IOException {
-        // set up
-        String path = System.getProperty("user.home") + "/RapidWright" + "/src/result";
-        Design design = new Design("name", device);
-        Device dev = design.getDevice();
-        String resultPath = System.getProperty("user.home") + "/RapidWright" + "/src/result/evaluated.txt";
-        FileWriter write = new FileWriter(resultPath);
-        PrintWriter result_writer = new PrintWriter(write);
-
-        // get all xdc files
-        File dir = new File(path);
-        File[] files = dir.listFiles((d, name) -> name.endsWith(".xdc"));
-        Arrays.sort(files, (f0, f1) -> {
-            String name0 = f0.getName();
-            String name1 = f1.getName();
-            int num0 = Integer.parseInt(name0.substring(name0.indexOf('=') + 1, name0.indexOf('.')));
-            int num1 = Integer.parseInt(name1.substring(name1.indexOf('=') + 1, name1.indexOf('.')));
-            return num0 - num1;// ascending order
-        });
-        for (File file : files) {
-
-            int block_index = -1;
-            int ele_index = 0;
-            Map<Integer, List<Site[]>> phenotype = new HashMap<>();
-
-            // read line by line
-            List<Site[]> oneBlock = new ArrayList<>();
-            try (BufferedReader br = new BufferedReader(new FileReader(file))) {
-                String line;
-                while ((line = br.readLine()) != null) {
-                    if (!line.startsWith("#")) {
-                        String siteName = line.split("\t")[0].split(" ")[2];
-                        Site site = dev.getSite(siteName);
-                        if (ele_index < 18)
-                            oneBlock.get(0)[ele_index] = site;
-                        else if (ele_index < 26)
-                            oneBlock.get(1)[ele_index - 18] = site;
-                        else
-                            oneBlock.get(2)[ele_index - 26] = site;
-                        ele_index += 1;
-                    } else {
-                        block_index += 1;
-                        if (!oneBlock.isEmpty())
-                            phenotype.put(block_index, new ArrayList<>(oneBlock));
-                        oneBlock.clear();
-                        oneBlock.add(new Site[18]);
-                        oneBlock.add(new Site[8]);
-                        oneBlock.add(new Site[2]);
-                        ele_index = 0;
-                    }
-                }
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
-
-
-            // evaluate this solution
-            Utils U = new Utils(phenotype, "device");
-            double[] utilization = U.getUtilization();
-            double[] utilization2 = U.getUtilization(0, 1300, 0, 1600); // whole partition utilization
-            double unitWireLength = U.getUnifiedWireLength();
-            double areaPerBlock = U.AreaPerBlock();
-            // write to file
-            result_writer.println(utilization[0] + " " + utilization[1] + " " + utilization[2] + " "
-                    + utilization2[0] + " " + utilization2[1] + " " + utilization2[2] + " " + unitWireLength + " " + areaPerBlock);
-            System.out.println("Number of Blocks = " + phenotype.size());
-            System.out.println("relative DSP Utilization = " + utilization[0] + " %");
-            System.out.println("relative BRAM Utilization = " + utilization[1] + " %");
-            System.out.println("relative URAM Utilization = " + utilization[2] + " %");
-            System.out.println("absolute DSP Utilization = " + utilization2[0] + " %");
-            System.out.println("absolute BRAM Utilization = " + utilization2[1] + " %");
-            System.out.println("absolute URAM Utilization = " + utilization2[2] + " %");
-            System.out.println("WireLengthPerBock = " + unitWireLength);
-            System.out.println("AreaPerBlock = " + areaPerBlock);
-            System.out.println("----------------");
-        }
-
-        result_writer.close();
     }
 
     public static Map<Integer, List<Site[]>> getMapFromXDC(String xdcFile, String device) throws IOException{

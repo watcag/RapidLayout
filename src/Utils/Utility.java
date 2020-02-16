@@ -6,7 +6,7 @@ import com.xilinx.rapidwright.device.*;
 import java.util.*;
 import java.util.stream.Collectors;
 
-public class Utils {
+public class Utility {
     final SiteTypeEnum DSP_SITE_TYPE = SiteTypeEnum.DSP48E2;
     final SiteTypeEnum BRAM_SITE_TYPE = SiteTypeEnum.RAMB180;
     final SiteTypeEnum BRAM_SITE_TYPE2 = SiteTypeEnum.RAMB181;
@@ -21,7 +21,7 @@ public class Utils {
     protected Map<Integer, List<Site[]>> phenotype;
     protected Device dev;
 
-    public Utils(Map<Integer, List<Site[]>> phenotype, String device){
+    public Utility(Map<Integer, List<Site[]>> phenotype, String device){
         this.phenotype = phenotype;
         // Initiate Device
         Design d = new Design("main", device);

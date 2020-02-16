@@ -1,6 +1,6 @@
 package main;
 
-import Utils.Utils;
+import Utils.Utility;
 import com.xilinx.rapidwright.design.Design;
 import com.xilinx.rapidwright.design.ModuleInst;
 import com.xilinx.rapidwright.device.Site;
@@ -22,7 +22,7 @@ public class Experiments {
         String device = "xcvu11p";
 
         Map<Integer, List<Site[]>> placement = getMapFromXDCRobust(xdcPath, device, blockNum);
-        Utils U = new Utils(placement, device);
+        Utility U = new Utility(placement, device);
 
         double[] report_wirelength = AutoPipeline.report_wireLengths(placement);
 
@@ -71,7 +71,7 @@ public class Experiments {
                             x_min, x_max, y_min, y_max);
             long end = System.nanoTime();
             double seconds = (end - start) / 1e9;
-            Utils U = new Utils(tmp_result, device);
+            Utility U = new Utility(tmp_result, device);
             double size = U.getMaxBBoxSize();
             double wirelength = U.getUnifiedWireLength();
 
@@ -563,6 +563,46 @@ public class Experiments {
         }
     }
 
+    public static void transferLearning() throws IOException {
+
+        String root = System.getenv("RAPIDWRIGHT_PATH") + "/";
+
+        String device = "vu11p";
+        String orig_xdc = root + "src/verilog/dsp_conv_chip.xdc";
+        //String orig_xdc = root + "result/blockNum=80.xdc";
+        String new_xdc = root + "result/opt.xdc";
+
+        int blockn = 480;
+        int x_min=0; int y_min=0; int x_max=6000; int y_max=10000;
+
+        boolean visual = true;
+        String method = "SA";
+        int population = 5;
+        int parents = 20;
+        int children = 50;
+        double crossoverR = 0.98;
+
+        Opt.StartOptimization opt = new Opt.StartOptimization();
+        Map<Integer, List<Site[]>> optPlace = opt.main(
+                blockn, device, visual, method,
+                population, parents, children, crossoverR,
+                x_min, x_max, y_min, y_max,
+                orig_xdc
+        );
+
+        PrintWriter pw = new PrintWriter(new FileWriter(new_xdc), true);
+        Tool.write_XDC(optPlace, pw);
+        pw.close();
+
+        String visual1 = "python3 " + root + "src/visualize/overall_visual.py " + orig_xdc + " " + root + "result/visual/";
+        String visual2 = "python3 " + root + "src/visualize/overall_visual.py " + new_xdc + " " + root + "result/visual/";
+
+        Tool.execute_cmd(visual1);
+        Tool.execute_cmd(visual2);
+
+
+    }
+
     public static void main(String[] args) throws IOException {
 
         // set up env variable
@@ -600,7 +640,9 @@ public class Experiments {
 
         //fixed_pipelining();
 
-        manual_placement_timing();
+        //manual_placement_timing();
+
+        transferLearning();
 
     }
 

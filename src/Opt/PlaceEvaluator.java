@@ -1,17 +1,14 @@
 package Opt;
 
-import Utils.Utils;
+import Utils.Utility;
 import com.google.inject.Inject;
 import org.opt4j.core.Objective;
 import org.opt4j.core.Objectives;
 import org.opt4j.core.problem.Evaluator;
 
-import com.xilinx.rapidwright.design.*;
 import com.xilinx.rapidwright.device.*;
 import org.opt4j.core.start.Constant;
-import org.python.netty.handler.codec.serialization.ObjectEncoder;
 
-import java.awt.geom.Area;
 import java.util.*;
 
 public class PlaceEvaluator implements Evaluator <Map<Integer, List<Site[]>>> {
@@ -41,7 +38,7 @@ public class PlaceEvaluator implements Evaluator <Map<Integer, List<Site[]>>> {
             uramSite.addAll(Arrays.asList(phenotype.get(i).get(2)));
         }
 
-        Utils U = new Utils(phenotype, device);
+        Utility U = new Utility(phenotype, device);
 
         double areaPerBlock = U.AreaPerBlock();
         double unifWireLen = U.getUnifiedWireLength();

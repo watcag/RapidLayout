@@ -1,13 +1,11 @@
 package main;
 
-import Utils.Utils;
+import Utils.Utility;
 import com.xilinx.rapidwright.design.Design;
 import com.xilinx.rapidwright.device.ClockRegion;
 import com.xilinx.rapidwright.device.Site;
 
 import java.io.*;
-import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
@@ -201,7 +199,7 @@ public class Vivado {
     public static void PBlockConstraint(PrintWriter tcl, Map<Integer, List<Site[]>> placement, String dev) {
         tcl.println("startgroup");
         tcl.println("create_pblock {pblock_name.dut}");
-        Utils utils = new Utils(placement, dev);
+        Utility utils = new Utility(placement, dev);
         ClockRegion[] r = utils.getClockRegionRange();
         tcl.println("resize_pblock {pblock_name.dut} -add " + "CLOCKREGION_" + r[0].getName() + ":" + "CLOCKREGION_" +  r[1].getName());
         tcl.println("add_cells_to_pblock {pblock_name.dut} -top");

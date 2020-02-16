@@ -1,6 +1,6 @@
 package OptReduced;
 
-import Utils.Utils;
+import Utils.Utility;
 import com.google.inject.Inject;
 import com.google.inject.Module;
 import com.xilinx.rapidwright.device.Site;
@@ -265,7 +265,7 @@ public class StartOptimization {
 
             Map<Integer, List<Site[]>> phenotype = (Map<Integer, List<Site[]>>) best.getPhenotype();
             int blockNum = phenotype.size();
-            Utils U = new Utils(phenotype, device);
+            Utility U = new Utility(phenotype, device);
             double unitWireLength = U.getUnifiedWireLength();
             // write out results
             System.out.println("Number of Blocks = " + blockNum);
