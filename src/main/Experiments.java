@@ -423,7 +423,7 @@ public class Experiments {
         Vivado.synthesize_vivado(blockn, part, 0, true);
     }
 
-    public static void manual_placement_timing() throws IOException {
+    public static void manual_placement_timing(String xdc_path) throws IOException {
         System.out.println("--- Fully Vivado manual placement timing ---");
         int depth = 4;
         String device = "xcvu11p";
@@ -441,7 +441,8 @@ public class Experiments {
             printWriter.println("set_property generic {NUMBER_OF_REG=" + depth + " Y=" + block_num + "} [current_fileset]");
             printWriter.println("synth_design -mode out_of_context -part " + part + " -top dsp_conv_chip;");
             printWriter.println("create_clock -period 1.000 -waveform {0.000 0.500} [get_nets clk];");
-            printWriter.println("read_xdc " + verilog_path + "dsp_conv_chip.xdc");
+            //printWriter.println("read_xdc " + verilog_path + "dsp_conv_chip.xdc");
+            printWriter.println("read_xdc " + xdc_path);
             printWriter.println("place_design; route_design; report_timing;");
             printWriter.println("write_checkpoint -force -file " + output_path);
             printWriter.println("exit");
@@ -576,7 +577,7 @@ public class Experiments {
         int x_min=0; int y_min=0; int x_max=6000; int y_max=10000;
 
         boolean visual = true;
-        String method = "SA";
+        String method = "EA";
         int population = 5;
         int parents = 20;
         int children = 50;
@@ -600,6 +601,8 @@ public class Experiments {
         Tool.execute_cmd(visual1);
         Tool.execute_cmd(visual2);
 
+
+        manual_placement_timing(new_xdc);
 
     }
 

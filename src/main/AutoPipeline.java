@@ -9,10 +9,7 @@ import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.PrintWriter;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 public class AutoPipeline {
 
@@ -314,6 +311,9 @@ public class AutoPipeline {
 
         int nreg = depth;
 
+        Properties prop = Tool.getProperties();
+        boolean rapidSynth = Boolean.parseBoolean(prop.getProperty("rapidSynth"));
+
         Integer[] numberofPin = new Integer[]{32, 72,
                 16, 16, 16, 16, 16, 16, 8, 8};
         for (int block = 0; block < blockn; block++) {
@@ -332,6 +332,7 @@ public class AutoPipeline {
                     System.out.println("pipeline depth = " + nreg);
                 }
             }
+            if (rapidSynth) break;
         }
     }
 
