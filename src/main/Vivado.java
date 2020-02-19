@@ -16,20 +16,20 @@ public class Vivado {
     static String result = System.getProperty("RAPIDWRIGHT_PATH") + "/result/";
     static String root = System.getProperty("RAPIDWRIGHT_PATH") + "/";
 
-    public static Design synthesize_with_seed(int block_num, String device, String part, boolean save, boolean verbose) {
+    public static Design synthesize_with_seed(int block_num, String device, int depth, String part, boolean verbose) throws IOException {
         long start_time = System.nanoTime();
 
         // synthesize seed first, if seed is not available
         String seed_path = checkpoint + "seed.dcp";
         File seed_file = new File(seed_path);
         if (!seed_file.exists())
-            synthesize_seed(part, verbose);
+            synthesize_seed(part, depth, verbose);
         else{
             Design d = Design.readCheckpoint(seed_path);
             Design temp_d = new Design("temp", device);
             if (!d.getPartName().equals(temp_d.getPartName())) { // if the seed is not compatible
                 System.out.println(">>>>WARNING<<<<  -- Seed's Device Part Name is different from requested, redo seed synthesis......");
-                synthesize_seed(part, verbose);
+                synthesize_seed(part, depth, verbose);
             }
         }
 
@@ -44,8 +44,10 @@ public class Vivado {
         System.out.println(s);
         System.out.println(">>>-----------------------------------------------");
 
-        if (save)
-            design.writeCheckpoint(checkpoint + "blockNum="+block_num+"_synth.dcp");
+        //Design new_design = legalize_process(design);
+
+        String synthDCP = checkpoint + "blockNum="+block_num+"_synth.dcp";
+        design.writeCheckpoint(synthDCP);
 
         return design;
     }
@@ -83,16 +85,15 @@ public class Vivado {
         return Design.readCheckpoint(output_path+".dcp");
     }
 
-    public static void synthesize_seed(String part, boolean verbose){
+    public static void synthesize_seed(String part, int depth, boolean verbose){
         String tcl_path = tcl + "synth_seed.tcl";
         String output_path = checkpoint + "seed";
 
         // write tcl script
         try (FileWriter write = new FileWriter(tcl_path)) {
             PrintWriter printWriter = new PrintWriter(write, true);
-            printWriter.println("read_verilog ../src/verilog/addr_gen.v ../src/verilog/dsp_conv.v ../src/verilog/dsp_conv_top.v ../src/verilog/dsp_conv_chip.sv");
-            printWriter.println("set_property generic {Y=" + 1 + "} [current_fileset]");
-            //printWriter.println("set_property generic {NUMBER_OF_REG=" + depth + "} [current_fileset]");
+            printWriter.println("read_verilog ../verilog/addr_gen.v ../verilog/dsp_conv.v ../verilog/dsp_conv_top.v ../verilog/dsp_conv_chip.sv");
+            printWriter.println("set_property generic {NUMBER_OF_REG=" + depth + " Y=1} [current_fileset]");
             printWriter.println("synth_design -mode out_of_context -part "+ part +" -top dsp_conv_chip;");
             printWriter.println("write_checkpoint -force -file " + output_path + ".dcp");
             printWriter.println("write_edif -force -file " + output_path + ".edf");

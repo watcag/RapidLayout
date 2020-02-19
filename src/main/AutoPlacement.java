@@ -266,7 +266,7 @@ public class AutoPlacement {
         Design d;
         System.out.println("start synthesis...");
         if (rapidSynth)
-            d = Vivado.synthesize_with_seed(blocknum, device, part, false, vivado_verbose);
+            d = Vivado.synthesize_with_seed(blocknum, device, 0, part, vivado_verbose);
         else
             d = Vivado.synthesize_vivado(blocknum, part, 0, vivado_verbose);
         d.setAutoIOBuffers(false); // out of context mode
@@ -326,6 +326,7 @@ public class AutoPlacement {
 
         MinRect mr = new MinRect(device, 18, 8, 2);
         int blocknum = mr.getBlocknum();
+        int replication = mr.getReplication();
         String method = prop.getProperty("method");
 
         // optimization parameters
@@ -368,7 +369,7 @@ public class AutoPlacement {
             Tool.matplot_visualize(xdc_result);
 
         /* replicate placement to one SLR */
-        result = AutoPlacement.populateFixed(result, device, 2);
+        result = AutoPlacement.populateFixed(result, device, replication);
         blocknum *= mr.getReplication();
         xdc_result = results + "blockNum=" + blocknum + ".xdc";
         PrintWriter pr = new PrintWriter(new FileWriter(xdc_result), true);
@@ -376,7 +377,12 @@ public class AutoPlacement {
         pr.close();
 
         /* synthesize one SLR */
-        Design d = Vivado.synthesize_vivado(blocknum, part, 0, vivado_verbose);
+        Design d = null;
+        if (rapidSynth)
+            d = Vivado.synthesize_with_seed(
+                    blocknum, device, 0,  part, vivado_verbose);
+        else
+            d = Vivado.synthesize_vivado(blocknum, part, 0, vivado_verbose);
         System.out.println("One SLR synthesis finished.");
 
         /* placement and site-routing */
@@ -508,7 +514,7 @@ public class AutoPlacement {
         Design d;
         System.out.println("start synthesis...");
         if (rapidSynth)
-            d = Vivado.synthesize_with_seed(blocknum, device, part, false, vivado_verbose);
+            d = Vivado.synthesize_with_seed(blocknum, device, 0, part,  vivado_verbose);
         else
             d = Vivado.synthesize_vivado(blocknum, part, depth, vivado_verbose);
         d.setAutoIOBuffers(false); // out of context mode

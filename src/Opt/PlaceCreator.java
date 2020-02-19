@@ -7,6 +7,7 @@ import com.xilinx.rapidwright.device.Site;
 import com.xilinx.rapidwright.device.SiteTypeEnum;
 import main.Tool;
 import org.opt4j.core.Genotype;
+import org.opt4j.core.genotype.BooleanGenotype;
 import org.opt4j.core.genotype.CompositeGenotype;
 import org.opt4j.core.genotype.PermutationGenotype;
 import org.opt4j.core.problem.Creator;
@@ -51,27 +52,27 @@ public class PlaceCreator implements Creator<CompositeGenotype<SiteTypeEnum, Gen
     }
 
     @Inject
-    public void setX_min(@Constant(value = "x_min") int x_min){
+    public void setX_min(@Constant(value = "x_min") int x_min) {
         this.x_min = x_min;
     }
 
     @Inject
-    public void setX_max(@Constant(value = "x_max") int x_max){
+    public void setX_max(@Constant(value = "x_max") int x_max) {
         this.x_max = x_max;
     }
 
     @Inject
-    public void setY_min(@Constant(value = "y_min") int y_min){
+    public void setY_min(@Constant(value = "y_min") int y_min) {
         this.y_min = y_min;
     }
 
     @Inject
-    public void setY_max(@Constant(value = "y_max") int y_max){
+    public void setY_max(@Constant(value = "y_max") int y_max) {
         this.y_max = y_max;
     }
 
     @Inject
-    public void setPrev_placement(@Constant(value = "prev_placement") String prev_placement){
+    public void setPrev_placement(@Constant(value = "prev_placement") String prev_placement) {
         this.prev_placement = prev_placement;
     }
 
@@ -127,14 +128,25 @@ public class PlaceCreator implements Creator<CompositeGenotype<SiteTypeEnum, Gen
         genotype.put(URAM_MAP, uramMapping);
 
         // use input placement as initialization
-        Map<Integer, List<Site[]>> prev = null;
+        Properties prop = null;
         try {
-            prev = Tool.getMapFromXDCRobust(prev_placement, device, block_num);
+            prop = Tool.getProperties();
         } catch (IOException e) {
             e.printStackTrace();
         }
-        assert prev != null;
-        if (prev.size() > 0) {
+
+        assert prop != null;
+        boolean transfer = Boolean.parseBoolean(prop.getProperty("transfer"));
+        String prev_placement_xdc = prop.getProperty("initial_xdc");
+
+        if (transfer) {
+            Map<Integer, List<Site[]>> prev = null;
+            try {
+                prev = Tool.getMapFromXDCRobust(prev_placement_xdc, device, block_num);
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+            assert prev != null;
             return Utils.Converter.convertFullGeno(prev, device, x_min, y_min, x_max, y_max);
         }
 
