@@ -107,7 +107,7 @@ The main workflow proceeds as follows:
 To run the complete workflow, go to project root folder, then run:
 
 ```bash
-$ java -Xmx80G main.AutoPlacement
+$ java -Xmx80G main.AutoPlacement 2>&1 | tee log.txt
   ==================Runtime Parameters====================
   Using Device: vu11p
   Hard Block Optimization Algorithm: SA
@@ -213,7 +213,62 @@ $$$$ frequency =  664.4518272425249 MHz
 
 ## Produce Experiments in the Paper
 
+### Compare the Performance of Methods
 
+<div align="center">
+  <img width="100%" height="45%"
+  src="./images/performance.pdf">
+</div>
+
+First, build the project with `gradle build -p $RAPIDWRIGHT_PATH` at the project root directory. Then, just run 
+
+```bash
+$ java Experiment.CompareMethods 2>&1 | tee log.txt
+```
+
+It will run optimization for 100 times, collect model performace data and also the convergence data, and plot the runtime performances of each method.
+
+### Plot Convergence
+
+<div align="center">
+  <img width="100%" height="50%"
+  src="./images/convergence.pdf">
+</div>
+
+To plot convergence for each method, we have to run `java Experiment.CompareMethods` first to collect convergence data. After that, just run:
+
+```bash
+$ java Experiment.ConvergencePlot 2>&1 | tee log.txt
+```
+
+The convergence plot will be save in the `visual` directory.
+
+### CMA-ES Sensitivity Analysis
+
+<div align="center">
+  <img width="45%" height="45%"
+  src="./images/sensitivity.pdf">
+</div>
+
+CMA-ES's sensitivity analysis involves changing two parameters, sigma and population in a  range and collect the wirelength result at convergence. Just run:  
+
+```bash
+$ java Experiment.CMASensitivity 2>&1 | tee log.txt
+```
+
+The program will change the parameters and run CMA-ES optimization multiple times at each combination. The data will be collected and used to plot the above 3-D figure for sensitivity. 
+
+### Create GIFs for Convergence
+
+![fused](/Users/zhangniansong/Downloads/fused.gif)
+
+Finally, we can produce GIFs of the placement searching process for each method, and this can be done in a single line of command:
+
+```bash
+$ java Experiment.GenerateGIF
+```
+
+The result GIF will be saved in the `visual` folder.
 
 ### License
 
