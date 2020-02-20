@@ -162,7 +162,7 @@ public class cmaes {
         boolean generateStatistics = true;
 
         /* define two convergence checkers for data collection */
-        String cvg_data_dir = System.getProperty("RAPIDWRIGHT_PATH") + "/result/CMA_converge_data/";
+        String cvg_data_dir = System.getProperty("RAPIDWRIGHT_PATH") + "/result/CMA_convergence_data/";
         File cvg_dir = new File(cvg_data_dir);
         if (cvg_dir.mkdirs())
             System.out.println("created dir " + cvg_dir);
@@ -286,7 +286,7 @@ public class cmaes {
 
     public static void main(String[] args) throws IOException {
         // main() is used as UnitTest for cma module
-        String sens = "/home/niansong/RapidWright/result/cma_sensitivity.txt";
+        String sens = System.getenv("RAPIDWRIGHT_PATH") + "/result/cma_sensitivity.txt";
         sensitivity_analysis(sens);
     }
 

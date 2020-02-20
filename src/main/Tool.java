@@ -341,4 +341,28 @@ public class Tool {
         System.out.println("========================================================");
 
     }
+
+    public static void changeProperty( String key, String value) throws IOException {
+        String root = System.getenv("RAPIDWRIGHT_PATH") + "/";
+        String config = root + "config.properties";
+
+        final File tmpFile = new File(config + ".tmp");
+        final File file = new File(config);
+        PrintWriter pw = new PrintWriter(tmpFile);
+        BufferedReader br = new BufferedReader(new FileReader(file));
+        boolean found = false;
+        final String toAdd = key + '=' + value;
+        for (String line; (line = br.readLine()) != null; ) {
+            if (line.startsWith(key + '=')) {
+                line = toAdd;
+                found = true;
+            }
+            pw.println(line);
+        }
+        if (!found)
+            pw.println(toAdd);
+        br.close();
+        pw.close();
+        tmpFile.renameTo(file);
+    }
 }

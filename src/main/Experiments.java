@@ -423,48 +423,6 @@ public class Experiments {
         Vivado.synthesize_vivado(blockn, part, 0, true);
     }
 
-    public static void manual_placement_timing(String xdc_path) throws IOException {
-        System.out.println("--- Fully Vivado manual placement timing ---");
-        int depth = 4;
-        String device = "xcvu11p";
-        String part = new Design("name", device).getPartName();
-        int block_num = 480;
-        String tcl_path = System.getProperty("RAPIDWRIGHT_PATH") + "/tcl/manual_" + depth + ".tcl";
-        String output_path = System.getProperty("RAPIDWRIGHT_PATH") + "/checkpoint/manual_pipeline_" + depth + ".dcp";
-        String verilog_path = System.getProperty("RAPIDWRIGHT_PATH") + "/src/verilog/";
-        // write tcl script
-        try (FileWriter write = new FileWriter(tcl_path)) {
-            PrintWriter printWriter = new PrintWriter(write, true);
-            printWriter.println("read_verilog " + verilog_path + "addr_gen.v " +
-                    verilog_path + "dsp_conv.v " + verilog_path + "dsp_conv_top.v " +
-                    verilog_path + "dsp_conv_chip.sv");
-            printWriter.println("set_property generic {NUMBER_OF_REG=" + depth + " Y=" + block_num + "} [current_fileset]");
-            printWriter.println("synth_design -mode out_of_context -part " + part + " -top dsp_conv_chip;");
-            printWriter.println("create_clock -period 1.000 -waveform {0.000 0.500} [get_nets clk];");
-            //printWriter.println("read_xdc " + verilog_path + "dsp_conv_chip.xdc");
-            printWriter.println("read_xdc " + xdc_path);
-            printWriter.println("place_design; route_design; report_timing;");
-            printWriter.println("write_checkpoint -force -file " + output_path);
-            printWriter.println("exit");
-            printWriter.close();
-        }
-
-        long start_time = System.nanoTime();
-        String slack = Vivado.vivado_cmd("vivado -mode tcl -source " + tcl_path, true);
-        long end_time = System.nanoTime();
-        System.out.println(">>>-----------------------------------------------");
-        System.out.println("Full Vivado Implementation time = " + (end_time - start_time) / 1e9 / 60 + " min");
-        System.out.println(">>>-----------------------------------------------");
-
-        double violation = Double.parseDouble(slack.substring(slack.indexOf("-"), slack.indexOf("ns")));
-        double clk_period = 1 - violation;
-        double frequency = 1e9 / clk_period;
-
-        System.out.println(">>>-----------------------------------------------");
-        System.out.println("Pipeline Depth = " + depth + ", Frequency = " + frequency / 1e6 + " MHz");
-        System.out.println(">>>-----------------------------------------------");
-    }
-
     public static void fixed_pipelining() throws IOException {
         int blockn = 1;
         int depth = 4;
@@ -516,6 +474,48 @@ public class Experiments {
 
         Vivado.vivado_cmd("vivado -mode tcl -source " + tclfile, true);
 
+    }
+
+    public static void manual_placement_timing(String xdc_path) throws IOException {
+        System.out.println("--- Fully Vivado manual placement timing ---");
+        int depth = 4;
+        String device = "xcvu11p";
+        String part = new Design("name", device).getPartName();
+        int block_num = 480;
+        String tcl_path = System.getProperty("RAPIDWRIGHT_PATH") + "/tcl/manual_" + depth + ".tcl";
+        String output_path = System.getProperty("RAPIDWRIGHT_PATH") + "/checkpoint/manual_pipeline_" + depth + ".dcp";
+        String verilog_path = System.getProperty("RAPIDWRIGHT_PATH") + "/src/verilog/";
+        // write tcl script
+        try (FileWriter write = new FileWriter(tcl_path)) {
+            PrintWriter printWriter = new PrintWriter(write, true);
+            printWriter.println("read_verilog " + verilog_path + "addr_gen.v " +
+                    verilog_path + "dsp_conv.v " + verilog_path + "dsp_conv_top.v " +
+                    verilog_path + "dsp_conv_chip.sv");
+            printWriter.println("set_property generic {NUMBER_OF_REG=" + depth + " Y=" + block_num + "} [current_fileset]");
+            printWriter.println("synth_design -mode out_of_context -part " + part + " -top dsp_conv_chip;");
+            printWriter.println("create_clock -period 1.000 -waveform {0.000 0.500} [get_nets clk];");
+            //printWriter.println("read_xdc " + verilog_path + "dsp_conv_chip.xdc");
+            printWriter.println("read_xdc " + xdc_path);
+            printWriter.println("place_design; route_design; report_timing;");
+            printWriter.println("write_checkpoint -force -file " + output_path);
+            printWriter.println("exit");
+            printWriter.close();
+        }
+
+        long start_time = System.nanoTime();
+        String slack = Vivado.vivado_cmd("vivado -mode tcl -source " + tcl_path, true);
+        long end_time = System.nanoTime();
+        System.out.println(">>>-----------------------------------------------");
+        System.out.println("Full Vivado Implementation time = " + (end_time - start_time) / 1e9 / 60 + " min");
+        System.out.println(">>>-----------------------------------------------");
+
+        double violation = Double.parseDouble(slack.substring(slack.indexOf("-"), slack.indexOf("ns")));
+        double clk_period = 1 - violation;
+        double frequency = 1e9 / clk_period;
+
+        System.out.println(">>>-----------------------------------------------");
+        System.out.println("Pipeline Depth = " + depth + ", Frequency = " + frequency / 1e6 + " MHz");
+        System.out.println(">>>-----------------------------------------------");
     }
 
     public static void count_register() throws IOException {
@@ -645,7 +645,7 @@ public class Experiments {
 
         //manual_placement_timing();
 
-        transferLearning();
+        //transferLearning();
 
     }
 

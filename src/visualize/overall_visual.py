@@ -233,10 +233,8 @@ def draw_png(filename, saveDir):
             for index in range(4):
                 sites[entries.index(pair) * 4 + index, 0] = x[index]
                 sites[entries.index(pair) * 4 + index, 1] = y[index]
-        drawTiles(ax, sites, '#000000')
 
-
-# add axis
+    # add axis
     legend_elements = [
         Patch(facecolor=dsp_block, label='DSP48'),
         Patch(facecolor=bram_block, label='BRAM'),
@@ -251,6 +249,52 @@ def draw_png(filename, saveDir):
     plt.close()
     print(saveDir + name + '.pdf')
     return saveDir + name + '.pdf'
+
+
+def draw_frame(ax, filename):
+
+    dict = readXDC(filename)
+
+    keys = list(dict.keys())  # keys are integer, which is block index
+
+    width = 560 + gap * (len(vu11p) - 1)
+    height = 5414.4 if len(keys) > 80 else 1000
+    fontsize = 80 if len(keys) > 80 else 40
+    rcParams.update({'font.size': fontsize})
+
+    # draw transparent polygons on a new image
+    ax.set_xlim(0, width + 20)
+    ax.set_ylim(0, height + 20)
+    rect = patches.Rectangle((10, 10), width, height, linewidth=1, facecolor='#f6f6f6')
+    ax.add_patch(rect)
+    drawBackGround(ax, width, height, gap)
+    for j in range(len(keys)):
+        key = keys[j]
+        entries = dict.get(key)
+        sites = np.zeros(shape=(len(entries) * 4, 2))
+        for pair in entries:
+            site = pair[0]
+            x = 0
+            y = 0
+            if site.startswith('DSP'):
+                x, y = drawDSP(ax, site, gap, dsp_block)
+            elif site.startswith('RAMB'):
+                x, y = drawBRAM(ax, site, gap, bram_block)
+            elif site.startswith('URAM'):
+                x, y = drawURAM(ax, site, gap, uram_block)
+
+            for index in range(4):
+                sites[entries.index(pair) * 4 + index, 0] = x[index]
+                sites[entries.index(pair) * 4 + index, 1] = y[index]
+
+    # add axis
+    legend_elements = [
+        Patch(facecolor=dsp_block, label='DSP48'),
+        Patch(facecolor=bram_block, label='BRAM'),
+        Patch(facecolor=uram_block, label='URAM')
+    ]
+
+    return ax
 
 
 if __name__ == "__main__":
