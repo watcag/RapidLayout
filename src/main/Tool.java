@@ -16,6 +16,8 @@ public class Tool {
 
     public static void execute_cmd(String command) {
 
+        System.out.println("Executing Command: " + command);
+
         try {
             ProcessBuilder builder = new ProcessBuilder("/bin/bash", "-c", command);
             builder.redirectErrorStream(true);
@@ -267,7 +269,7 @@ public class Tool {
     }
 
     public static Properties getProperties() throws IOException {
-        String config = System.getProperty("RAPIDWRIGHT_PATH") + "/config.properties";
+        String config = System.getenv("RAPIDWRIGHT_PATH") + "/config.properties";
         Properties prop = new Properties();
         InputStream inputStream = new FileInputStream(config);
         prop.load(inputStream);

@@ -45,7 +45,7 @@ public class CompareMethods {
             e.printStackTrace();
         }
 
-        for (int i = 0; i < 100 - expr_done; i++) {
+        for (int i = 0; i < 5 - expr_done; i++) {
 
             System.out.println("Method: " + method + "Optimization: " + i);
 
@@ -72,6 +72,12 @@ public class CompareMethods {
     }
 
     public static void main(String[] args) throws IOException {
+        // set up env variable
+        if (System.getenv("RAPIDWRIGHT_PATH") == null)
+            System.setProperty("RAPIDWRIGHT_PATH", System.getProperty("user.home") + "/RapidWright");
+        else
+            System.setProperty("RAPIDWRIGHT_PATH", System.getenv("RAPIDWRIGHT_PATH"));
+
         String[] methods = {"CMA", "EA", "EA-reduced", "SA"};
         for (String method : methods){
             collect_specs_data(method);

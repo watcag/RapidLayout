@@ -193,7 +193,6 @@ if __name__ == "__main__":
     parser.add_argument('imgPath', type=str, help='the image saving directory, no ending slash, e.g. ~/home/img')
     args = parser.parse_args()
 
-    dataPath = args.dataPath
     imgPath = args.imgPath
 
     if not os.path.isdir(imgPath):

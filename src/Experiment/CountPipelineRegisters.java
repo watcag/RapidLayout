@@ -35,6 +35,11 @@ public class CountPipelineRegisters {
     }
 
     public static void main(String[] args) throws IOException {
+        // set up env variable
+        if (System.getenv("RAPIDWRIGHT_PATH") == null)
+            System.setProperty("RAPIDWRIGHT_PATH", System.getProperty("user.home") + "/RapidWright");
+        else
+            System.setProperty("RAPIDWRIGHT_PATH", System.getenv("RAPIDWRIGHT_PATH"));
 
         Scanner input = new Scanner(System.in);
 
