@@ -12,7 +12,7 @@ placement visualization.
 
 ## Contents
 
-1. [Install Dependencies][#Install Dependencies]
+1. [Install Dependencies](#Install Dependencies)
 2. [Build Project](#Build Project)
 3. [Configuration](#Configuration)
 4. [The RapidLayout Workflow](#The RapidLayout Workflow)
