@@ -21,14 +21,25 @@ def create_video():
     # imageio.
 
 
-def draw_one_frame(saveDir, cma_xdc, ea_xdc, ear_xdc, sa_xdc):
-    fig, (ax1, ax2, ax3, ax4) = plt.subplots(2, 2)
+def draw_one_frame(saveDir, cma_xdc, ea_xdc, ear_xdc, sa_xdc,
+                   cma_iter, ea_iter, ear_iter, sa_iter):
+    fig, axs = plt.subplots(2, 2)
+    fig.set_size_inches(10,5)
+
+    ax1 = axs[0,0]
+    ax2 = axs[0,1]
+    ax3 = axs[1,0]
+    ax4 = axs[1,1]
+
     # CMA, EA, EA-reduced, SA
-    draw_frame(ax1, cma_xdc)
-    draw_frame(ax2, ea_xdc)
-    draw_frame(ax3, ear_xdc)
-    draw_frame(ax4, sa_xdc)
+    draw_frame(ax1, cma_xdc, cma_iter, "CMA-ES")
+    draw_frame(ax2, ea_xdc, ea_iter, "NSGA-II")
+    draw_frame(ax3, ear_xdc, ear_iter, "NSGA-II-reduced")
+    draw_frame(ax4, sa_xdc, sa_iter, "Annealing")
+
+    plt.tight_layout()
     plt.savefig(saveDir)
+    print("saved temp frame: " + saveDir)
 
 
 if __name__ == "__main__":
@@ -57,18 +68,30 @@ if __name__ == "__main__":
 
     # how many frame do we want?
     frame = 10
-    cma_step = int(len(cma_xdc) / frame)
-    ea_step = int(len(ea_xdc) / frame)
-    ear_step = int(len(ear_xdc) / frame)
-    sa_step = int(len(sa_xdc) / frame)
+    step = int(len(sa_xdc) / frame)
+
+    if len(cma_xdc) < frame * step:
+        orig_len = len(cma_xdc)
+        for i in range(orig_len, frame * step):
+            cma_xdc.append(cma_xdc[orig_len-1])
+    if len(ea_xdc) < frame * step:
+        orig_len = len(ea_xdc)
+        for i in range(orig_len, frame * step):
+            ea_xdc.append(ea_xdc[orig_len-1])
+    if len(ear_xdc) < frame * step:
+        orig_len = len(ear_xdc)
+        for i in range(orig_len, frame * step):
+            ear_xdc.append(ear_xdc[orig_len-1])
+
 
     frames = []
 
     for i in range(frame):
-        imgFile = saveDir + str(i) + ".pdf"
-        draw_one_frame(imgFile, cma_xdc[cma_step * i],
-                       ea_xdc[ea_step * i], ear_xdc[ea_step * i],
-                       sa_xdc[sa_step * i])
+        imgFile = saveDir + str(i) + ".png"
+        draw_one_frame(imgFile, cma_xdc[step * i],
+                       ea_xdc[step * i], ear_xdc[step * i],
+                       sa_xdc[step * i],
+                       i*step, i*step, i*step, i*step)
         frames.append(imageio.imread(imgFile))
 
     gifFile = root + "/visual/fused.gif"

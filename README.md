@@ -10,6 +10,14 @@ library for CMA-ES.
 RapidLayout is written in Java, accompanied with a set of python scripts for
 placement visualization. 
 
+## Contents
+
+1. [Install Dependencies][#Install Dependencies]
+2. [Build Project](#Build Project)
+3. [Configuration](#Configuration)
+4. [The RapidLayout Workflow](#The RapidLayout Workflow)
+5. [Paper Experiments](#Produce Experiments in the Paper)
+
 ## How to use RapidLayout
 
 ### Install Dependencies
@@ -68,9 +76,13 @@ root folder. The parameters are illustrated as follows.
 |   `collect_gif_data`    |        `true` or `false`        | Collect placement evolutionary data to visualize the evolving process for current method. |
 | `collect_converge_data` |        `true` or `false`        | Collect objective data of each iteration for visualization.  |
 
-### Run the Main Workflow
+### The RapidLayout Workflow
+
+#### Main Workflow Explained
 
 RapidLayout uses the above configuration file to control its end-to-end workflow. No additional input is necessary, no manual command input is needed, everything is automatic. If you need to run a different experiment, just modify the configuration and start the program, no re-compilation is needed. 
+
+__Click [here](#Run the Main Workflow) to skip explanation__
 
 The main workflow proceeds as follows: 
 
@@ -103,6 +115,8 @@ The main workflow proceeds as follows:
    > The fully implemented design in one SLR is copy-pasted to other SLRs to get a complete implementation.
 
 8. Timing. 
+
+### Run the Main Workflow
 
 To run the complete workflow, go to project root folder, then run:
 
@@ -212,6 +226,15 @@ $$$$ frequency =  664.4518272425249 MHz
 
 
 ## Produce Experiments in the Paper
+
+__Python dependencies__:
+
+```
+imageio                  2.6.1      
+pygifsicle               1.0.1      
+matplotlib               3.0.2 
+numpy                    1.17.4     
+```
 
 ### Compare the Performance of Methods
 
