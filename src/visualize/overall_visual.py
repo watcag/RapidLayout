@@ -233,7 +233,7 @@ def draw_png(filename, saveDir):
             for index in range(4):
                 sites[entries.index(pair) * 4 + index, 0] = x[index]
                 sites[entries.index(pair) * 4 + index, 1] = y[index]
-
+        drawTiles(ax, sites, '#000000')
     # add axis
     legend_elements = [
         Patch(facecolor=dsp_block, label='DSP48'),
@@ -251,7 +251,7 @@ def draw_png(filename, saveDir):
     return saveDir + name + '.pdf'
 
 
-def draw_frame(ax, filename):
+def draw_frame(ax, filename, iteration, method):
 
     dict = readXDC(filename)
 
@@ -259,8 +259,6 @@ def draw_frame(ax, filename):
 
     width = 560 + gap * (len(vu11p) - 1)
     height = 5414.4 if len(keys) > 80 else 1000
-    fontsize = 80 if len(keys) > 80 else 40
-    rcParams.update({'font.size': fontsize})
 
     # draw transparent polygons on a new image
     ax.set_xlim(0, width + 20)
@@ -286,13 +284,21 @@ def draw_frame(ax, filename):
             for index in range(4):
                 sites[entries.index(pair) * 4 + index, 0] = x[index]
                 sites[entries.index(pair) * 4 + index, 1] = y[index]
+        drawTiles(ax, sites, '#000000')
 
-    # add axis
-    legend_elements = [
-        Patch(facecolor=dsp_block, label='DSP48'),
-        Patch(facecolor=bram_block, label='BRAM'),
-        Patch(facecolor=uram_block, label='URAM')
-    ]
+    ax.set_xlabel("iteration = {}".format(iteration))
+    ax.set_title(method, fontsize=30)
+
+    ax.tick_params(
+        axis='both',  # changes apply to the x-axis
+        which='both',  # both major and minor ticks are affected
+        bottom=False,  # ticks along the bottom edge are off
+        top=False,  # ticks along the top edge are off
+        left=False,
+        right=False,
+        labelleft=False,
+        labelbottom=False  # labels along the bottom edge are off)
+    )
 
     return ax
 

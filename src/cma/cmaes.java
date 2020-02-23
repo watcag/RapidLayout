@@ -169,6 +169,8 @@ public class cmaes {
         else
             System.out.println("directory " + cvg_dir + " exists");
         String converge_data = cvg_data_dir + "run_at_" + System.currentTimeMillis() + ".txt";
+
+        // convergence checker: called after each iteration
         ConvergenceChecker<PointValuePair> checker_for_convergence_data = new ConvergenceChecker<PointValuePair>() {
             @Override
             public boolean converged(int i, PointValuePair previous, PointValuePair current) {
@@ -197,6 +199,7 @@ public class cmaes {
         };
 
 
+        // Convergence checker: GIF data, called after each iteration
         String gif_data_dir = System.getProperty("RAPIDWRIGHT_PATH") + "/result/CMA_gif_data/";
         File gif_dir = new File(gif_data_dir);
         if (gif_dir.mkdirs())
@@ -206,6 +209,8 @@ public class cmaes {
         ConvergenceChecker<PointValuePair> checker_for_gif_data = new ConvergenceChecker<PointValuePair>() {
             @Override
             public boolean converged(int i, PointValuePair previous, PointValuePair current) {
+
+                //System.out.println("Convergence checker for GIF data is called");
 
                 Map<SiteTypeEnum, List<List<Site>>> allAvailSites = Opt.PlaceCreator.getAvailableSites(dev, x_min, x_max, y_min, y_max);
                 // change the keys of selected sites to accustom cma decoder
@@ -217,11 +222,12 @@ public class cmaes {
                 Map<Integer, List<Site[]>> placement = PlaceDecoder.decode(current.getPoint(), selectedSites);
                 Utility U = new Utility(placement, Device);
                 double wirelength = U.getUnifiedWireLength();
-                if (i > 30000 || i % 10 != 0) return wirelength < 4500;
+                if (i > 30000 || i % 3 != 0) return wirelength < 4500;
 
                 try {
                     PrintWriter pr = new PrintWriter(new FileWriter(gif_data_dir + i + ".xdc"), true);
                     Tool.write_XDC(placement, pr);
+                    //System.out.println("XDC file at iteration " + i + " is called.");
                     pr.close();
                 } catch (IOException e) {
                     e.printStackTrace();
@@ -245,6 +251,7 @@ public class cmaes {
                 checkFeasibleCount, new JDKRandomGenerator(), generateStatistics, null);
 
         if (collect_gif_data) {
+            //System.out.println("collect gif data: yes");
             opt = new CMAESOptimizer(maxIteration, stopFitness, isActiveCMA, diagonalOnly,
                     checkFeasibleCount, new JDKRandomGenerator(), generateStatistics, checker_for_gif_data);
         }

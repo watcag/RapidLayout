@@ -213,6 +213,15 @@ $$$$ frequency =  664.4518272425249 MHz
 
 ## Produce Experiments in the Paper
 
+__Python dependencies__:
+
+```
+imageio                  2.6.1      
+pygifsicle               1.0.1      
+matplotlib               3.0.2 
+numpy                    1.17.4     
+```
+
 ### Compare the Performance of Methods
 
 <div align="center">
