@@ -55,9 +55,6 @@ public class PlaceModule extends ProblemModule {
     public void setMethod(String method){this.method = method;}
     public String getMethod(){return method;}
 
-    public void setPrev_placement(String prev_placement){this.prev_placement = prev_placement;}
-    public String getPrev_placement(){return this.prev_placement;}
-
 
     protected void config (){
         bindProblem(PlaceCreator.class, PlaceDecoder.class, PlaceEvaluator.class);

@@ -587,8 +587,7 @@ public class Experiments {
         Map<Integer, List<Site[]>> optPlace = opt.main(
                 blockn, device, visual, method,
                 population, parents, children, crossoverR,
-                x_min, x_max, y_min, y_max,
-                orig_xdc
+                x_min, x_max, y_min, y_max
         );
 
         PrintWriter pw = new PrintWriter(new FileWriter(new_xdc), true);

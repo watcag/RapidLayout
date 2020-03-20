@@ -45,7 +45,7 @@ public class CompareMethods {
             e.printStackTrace();
         }
 
-        for (int i = 0; i < 5 - expr_done; i++) {
+        for (int i = 0; i < 20 - expr_done; i++) {
 
             System.out.println("Method: " + method + "Optimization: " + i);
 

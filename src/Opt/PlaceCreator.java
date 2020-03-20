@@ -7,7 +7,6 @@ import com.xilinx.rapidwright.device.Site;
 import com.xilinx.rapidwright.device.SiteTypeEnum;
 import main.Tool;
 import org.opt4j.core.Genotype;
-import org.opt4j.core.genotype.BooleanGenotype;
 import org.opt4j.core.genotype.CompositeGenotype;
 import org.opt4j.core.genotype.PermutationGenotype;
 import org.opt4j.core.problem.Creator;
@@ -38,8 +37,6 @@ public class PlaceCreator implements Creator<CompositeGenotype<SiteTypeEnum, Gen
     int y_min = 0;
     int y_max = 1500;
 
-    String prev_placement = "";
-
 
     @Inject
     public void setBlock_num(@Constant(value = "block_num") int block_num) {
@@ -69,11 +66,6 @@ public class PlaceCreator implements Creator<CompositeGenotype<SiteTypeEnum, Gen
     @Inject
     public void setY_max(@Constant(value = "y_max") int y_max) {
         this.y_max = y_max;
-    }
-
-    @Inject
-    public void setPrev_placement(@Constant(value = "prev_placement") String prev_placement) {
-        this.prev_placement = prev_placement;
     }
 
 
@@ -140,6 +132,7 @@ public class PlaceCreator implements Creator<CompositeGenotype<SiteTypeEnum, Gen
         String prev_placement_xdc = prop.getProperty("initial_xdc");
 
         if (transfer) {
+            // turn off transfer after the initialization
             Map<Integer, List<Site[]>> prev = null;
             try {
                 prev = Tool.getMapFromXDCRobust(prev_placement_xdc, device, block_num);
@@ -209,21 +202,24 @@ public class PlaceCreator implements Creator<CompositeGenotype<SiteTypeEnum, Gen
         for (int i = 0; i <= max_uram_col; i++)
             URAMSites.add(new ArrayList<>());
 
-        for (Site s : allDSPSites)
-            if (s.getRpmX() >= x_min & s.getRpmX() <= x_max && s.getRpmY() >= y_min && s.getRpmY() <= y_max) {
+        for (Site s : allDSPSites) {
+            int y = s.getRpmY();
+            boolean debug = s.getRpmY() <= y_max;
+            if (s.getRpmX() >= x_min && s.getRpmX() <= x_max && s.getRpmY() >= y_min && s.getRpmY() <= y_max) {
                 String name = s.getName();
                 int col = Integer.parseInt(name.substring(name.indexOf('X') + 1, name.indexOf('Y')));
                 DSPSites.get(col).add(s);
             }
+        }
 
         for (Site s : allBRAMSites)
-            if (s.getRpmX() >= x_min & s.getRpmX() <= x_max && s.getRpmY() >= y_min && s.getRpmY() <= y_max) {
+            if (s.getRpmX() >= x_min && s.getRpmX() <= x_max && s.getRpmY() >= y_min && s.getRpmY() <= y_max) {
                 String name = s.getName();
                 int col = Integer.parseInt(name.substring(name.indexOf('X') + 1, name.indexOf('Y')));
                 BRAMSites.get(col).add(s);
             }
         for (Site s : allURAMSites)
-            if (s.getRpmX() >= x_min & s.getRpmX() <= x_max && s.getRpmY() >= y_min && s.getRpmY() <= y_max) {
+            if (s.getRpmX() >= x_min && s.getRpmX() <= x_max && s.getRpmY() >= y_min && s.getRpmY() <= y_max) {
                 String name = s.getName();
                 int col = Integer.parseInt(name.substring(name.indexOf('X') + 1, name.indexOf('Y')));
                 URAMSites.get(col).add(s);

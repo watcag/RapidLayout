@@ -270,7 +270,7 @@ public class BlockPlacer {
 			path.calculateLength();
 		}
 		double prevSystemCost = currentSystemCost();
-		//if(verbose) System.out.println(" Initial Cost: " + prevSystemCost);
+		if(verbose) System.out.println(" Initial Cost: " + prevSystemCost);
 
 		double currSystemCost = prevSystemCost;
 		double bestSoFar = currSystemCost;
@@ -307,7 +307,7 @@ public class BlockPlacer {
 					scaleFactor += currentMove.getBlock1().getConnectedPaths().size();
 				}
 				
-				//System.out.println(changeInCost + " " + scaleFactor + " " + currentTemp + " " + r);
+				System.out.println(changeInCost + " " + scaleFactor + " " + currentTemp + " " + r);
 				boolean acceptMove = (r < Math.exp(-changeInCost/(scaleFactor*currentTemp)));
 				
 				if(changeInCost > 0) badMoveCount++; 
@@ -617,6 +617,8 @@ public class BlockPlacer {
 	private void getNextMove(){
 		HardMacro selected = hardMacros.get(rand.nextInt(hardMacros.size()));
 		ArrayList<Site> validSites = selected.getValidPlacements();
+		if (validSites.size() == 0)
+			System.out.println("no valid placement found");
 		Site site0 = selected.getTempAnchorSite();
 		Site site1 = null;
 		HardMacro hm0 = selected;
