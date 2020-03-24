@@ -21,6 +21,8 @@ import org.opt4j.viewer.ViewerModule;
 import java.io.*;
 import java.util.*;
 
+import static main.Tool.changeProperty;
+
 
 class Global {
     public static String method;
@@ -113,11 +115,11 @@ public class TuneSA {
 
             // data collection options
             if (i % 1000 == 0) {
-                String converge_data_path = System.getenv("RAPIDWRIGHT_PATH") + "/result/TuneSA" + "_convergence_data";
+                String converge_data_path = System.getenv("RAPIDWRIGHT_PATH") + "/result/SA" + "_convergence_data";
                 File data_path = new File(converge_data_path);
                 if (data_path.mkdirs())
                     System.out.println("directory " + data_path + " is created");
-                String this_run = converge_data_path + "/" + Global.schedule + ".txt";
+                String this_run = converge_data_path + "/" + Global.time + ".txt";
                 try {
                     FileWriter this_run_fw = new FileWriter(this_run, true);
                     PrintWriter this_run_pw = new PrintWriter(this_run_fw, true);
@@ -132,7 +134,7 @@ public class TuneSA {
 
 
 
-    public static void run() {
+    public static double[] run() {
 
         boolean visual = true;
         String device = "xcvu11p";
@@ -222,18 +224,15 @@ public class TuneSA {
             Utility U = new Utility(phenotype, device);
             double unitWireLength = U.getUnifiedWireLength();
             double size = U.getMaxBBoxSize();
-            // write out results
-            System.out.println("Number of Blocks = " + blockNum);
-            System.out.println("WireLengthPerBock = " + unitWireLength);
-            System.out.println("Size = " + size);
-            System.out.println("------------------------");
 
-            Objectives objectives = best.getObjectives();
-            for (Objective objective : objectives.getKeys()) {
-                System.out.println(objective.getName() + " = " + objectives.get(objective).getDouble());
-            }
+//            Objectives objectives = best.getObjectives();
+//            for (Objective objective : objectives.getKeys()) {
+//                System.out.println(objective.getName() + " = " + objectives.get(objective).getDouble());
+//            }
 
             map.putAll(phenotype);
+
+            return new double[]{size, unitWireLength};
 
         } catch (Exception e) {
             e.printStackTrace();
@@ -241,10 +240,35 @@ public class TuneSA {
             task.close();
         }
 
+        return new double[]{};
+    }
+
+    public static void collect_data() throws IOException {
+        String perfFile = System.getenv("RAPIDWRIGHT_PATH") + "/result/SA_perf.txt";
+        int times = 20;
+
+        PrintWriter pr = new PrintWriter(new FileWriter(perfFile, true), true);
+
+        for (int i=0; i < times; i++) {
+
+            long start = System.currentTimeMillis();
+            double[] perfs = run();
+            long end = System.currentTimeMillis();
+            double secs = (end-start) / 1e3;
+
+            if (perfs.length < 2) {
+                System.out.println("Run #" + i + " failed.");
+            }
+
+            System.out.println("secs = " + secs + " bbox size = " + perfs[0] + " wirelength = "  + perfs[1]);
+
+            pr.println(secs + " " + perfs[0] + " " + perfs[1]);
+        }
 
     }
 
-    public static void main(String[] args) {
-        run();
+    public static void main(String[] args) throws IOException {
+        changeProperty("transfer", "false");
+        collect_data();
     }
 }

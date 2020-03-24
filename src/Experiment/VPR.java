@@ -5,10 +5,9 @@ import com.xilinx.rapidwright.design.Design;
 import com.xilinx.rapidwright.device.Device;
 import com.xilinx.rapidwright.device.Site;
 import main.Tool;
+import main.Vivado;
 
-import java.io.BufferedReader;
-import java.io.FileReader;
-import java.io.IOException;
+import java.io.*;
 import java.util.*;
 
 public class VPR {
@@ -17,18 +16,9 @@ public class VPR {
     private static Integer[] bram_col_index = new Integer[]{8, 12, 28, 48, 56, 76, 80, 100, 108, 128, 136, 164, 196, 198};
     private static Integer[] uram_col_index = new Integer[]{36, 92, 116, 144, 172};
 
-    public static void main(String[] args) {
-        // set up env variable
-        if (System.getenv("RAPIDWRIGHT_PATH") == null)
-            System.setProperty("RAPIDWRIGHT_PATH", System.getProperty("user.home") + "/RapidWright");
-        else
-            System.setProperty("RAPIDWRIGHT_PATH", System.getenv("RAPIDWRIGHT_PATH"));
+    private static String vpr_root_folder = System.getProperty("user.home") + "/vtr_release/vpr";
 
-        String home = System.getProperty("user.home");
-
-        /* change this to specify VPR's placement result*/
-        String vpr_place_path = "/Users/zhangniansong/Developer/vtr_release/vpr/conv.place";
-
+    public static double[] calc_perf(String vpr_place_path) {
         // set up device
         String device = "vu11p";
         Device dev = new Design("name", device).getDevice();
@@ -120,9 +110,50 @@ public class VPR {
 
         Utility U = new Utility(placement, device);
 
-        System.out.println("average wirelength = " + U.getUnifiedWireLength());
-        System.out.println("max half bbox perimeter = " + U.getMaxBBoxSize());
+        double wl = U.getUnifiedWireLength();
+        double bbox = U.getMaxBBoxSize();
 
+        System.out.println("average wirelength = " + U.getUnifiedWireLength() + " max half bbox perimeter = " + U.getMaxBBoxSize());
+
+        return new double[]{bbox, wl};
+    }
+
+    public static void main(String[] args) throws IOException {
+        // set up env variable
+        if (System.getenv("RAPIDWRIGHT_PATH") == null)
+            System.setProperty("RAPIDWRIGHT_PATH", System.getProperty("user.home") + "/RapidWright");
+        else
+            System.setProperty("RAPIDWRIGHT_PATH", System.getenv("RAPIDWRIGHT_PATH"));
+
+        String home = System.getProperty("user.home");
+
+        /* change this to specify VPR's placement result*/
+        String vpr_place_path = vpr_root_folder + "/conv.place";
+        String output = System.getenv("RAPIDWRIGHT_PATH") + "/result/VPR_perf.txt";
+        PrintWriter pr = new PrintWriter(new FileWriter(output, true), true);
+
+        int times = 10;
+
+
+        for (int i=0; i < times; i++) {
+
+            String command = vpr_root_folder + "/vpr " + vpr_root_folder +
+                    "/my_arch.xml " + vpr_root_folder + "/conv.blif -nodisp -place -seed " + i;
+
+            long start = System.currentTimeMillis();
+
+            Vivado.vivado_cmd(command, false);
+
+            long end = System.currentTimeMillis();
+
+            double secs = (end - start) / 1e3;
+            double[] perfs = calc_perf(vpr_place_path);
+
+            pr.println(secs + " " + perfs[0] + " " + perfs[1]);
+
+        }
+
+        pr.close();
 
     }
 }

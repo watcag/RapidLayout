@@ -59,6 +59,7 @@ def plot_comparison(dataPath, imagePath):
     sa_t, sa_s, sa_w = read_data(dataPath + '/SA_perf.txt')
     ea_t, ea_s, ea_w = read_data(dataPath + '/EA_perf.txt')
     ear_t, ear_s, ear_w = read_data(dataPath + '/EA-reduced_perf.txt')
+    vpr_t, vpr_s, vpr_w = read_data(dataPath + '/VPR_perf.txt')
 
     for i, w in enumerate(cma_w):
         cma_w[i] = w * w
@@ -68,11 +69,14 @@ def plot_comparison(dataPath, imagePath):
         ea_w[i] = w * w
     for i, w in enumerate(ear_w):
         ear_w[i] = w * w
+    for i, w in enumerate(vpr_w):
+        vpr_w[i] = w * w
 
     ax.scatter(sa_w, sa_t, s=70, marker='o', label="Annealing", alpha=0.6)
     ax.scatter(ea_w, ea_t, s=70, marker='^', label="NSGA-II", alpha=0.6)
     ax.scatter(ear_w, ear_t, s=70, marker='^', label="NSGA-II(Red)", alpha=0.6)
     ax.scatter(cma_w, cma_t, s=100, marker='*', label="CMA-ES", alpha=0.6)
+    ax.scatter(vpr_w, vpr_t, s=100, marker='*', label="VPR", alpha=0.6)
     ax.set_xlabel("$\mathrm{wirelength^2}$", fontsize=18)
     ax.set_ylabel("runtime (sec)", fontsize=18)
 
@@ -89,6 +93,7 @@ def plot_comparison(dataPath, imagePath):
     ax2.scatter(ea_s, ea_t, s=100, marker='^', label="NSGA-II", alpha=0.6)
     ax2.scatter(ear_s, ear_t, s=100, marker='^', label="NSGA-II(Red)", alpha=0.6)
     ax2.scatter(cma_s, cma_t, s=130, marker='*', label="CMA-ES", alpha=0.6)
+    ax2.scatter(vpr_s, vpr_t, s=130, marker='*', label="VPR", alpha=0.6)
     ax2.set_xlabel("max bounding box size", fontsize=18)
     ax2.set_yticks([])
 
@@ -101,16 +106,19 @@ def plot_comparison(dataPath, imagePath):
         ea_w[i] = w * ea_s[i]
     for i, w in enumerate(ear_w):
         ear_w[i] = w * ear_s[i]
+    for i, w in enumerate(vpr_w):
+        vpr_w[i] = w * vpr_s[i]
 
     ax3.scatter(sa_w, sa_t, s=70, marker='o', label="Annealing", alpha=0.6)
     ax3.scatter(ea_w, ea_t, s=70, marker='^', label="NSGA-II", alpha=0.6)
     ax3.scatter(ear_w, ear_t, s=70, marker='^', label="NSGA-II(Red)", alpha=0.6)
     ax3.scatter(cma_w, cma_t, s=100, marker='*', label="CMA-ES", alpha=0.6)
+    ax3.scatter(vpr_w, vpr_t, s=100, marker='*', label="VPR", alpha=0.6)
     ax3.set_xlabel("$\mathrm{wirelength^2 \\times BboxSize}$", fontsize=18)
     ax3.set_yticks([])
 
     handles, labels = ax2.get_legend_handles_labels()
-    fig.legend(handles, labels, loc='upper center', prop={'size': 18}, ncol=4, bbox_to_anchor=(0.5, 0.97),
+    fig.legend(handles, labels, loc='upper center', prop={'size': 18}, ncol=5, bbox_to_anchor=(0.5, 0.97),
                frameon=False)
 
     ax.tick_params(axis='both', which='major', labelsize=16)
