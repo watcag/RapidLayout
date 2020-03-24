@@ -10,10 +10,50 @@ import com.xilinx.rapidwright.placer.blockplacer.BlockPlacer;
 import main.Tool;
 import main.Vivado;
 
+import java.io.File;
+import java.io.FileWriter;
 import java.io.IOException;
+import java.io.PrintWriter;
 import java.util.*;
 
 public class RapidWrightBaseline {
+
+    static String checkpoint = System.getenv("RAPIDWRIGHT_PATH") + "/checkpoint/";
+    static String tcl = System.getenv("RAPIDWRIGHT_PATH") + "/tcl/";
+
+    public static Design implement_one_block(int block_num, String part, int depth, boolean verbose){
+        String tcl_path = tcl + "synth.tcl";
+        String output_path = checkpoint + "blockNum=" + block_num;
+        File checkpoint = new File(output_path+".dcp");
+
+        if (checkpoint.exists())
+            return Design.readCheckpoint(output_path+".dcp");
+
+        // write tcl script
+        try (FileWriter write = new FileWriter(tcl_path)) {
+            PrintWriter printWriter = new PrintWriter(write, true);
+            printWriter.println("read_verilog ../verilog/addr_gen.v ../verilog/dsp_conv.v ../verilog/dsp_conv_top.v ../verilog/dsp_conv_chip.sv");
+            printWriter.println("set_property generic {NUMBER_OF_REG=" + depth + " Y="+block_num+"} [current_fileset]");
+            printWriter.println("synth_design -mode out_of_context -part "+ part +" -top dsp_conv_chip;");
+            printWriter.println("place_design; route_design;");
+            printWriter.println("write_checkpoint -force -file " + output_path + ".dcp");
+            printWriter.println("write_edif -force -file " + output_path + ".edf");
+            printWriter.println("exit");
+            printWriter.close();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
+        long start_time = System.nanoTime();
+        Vivado.vivado_cmd("vivado -mode tcl -source " + tcl_path, verbose);
+        long end_time = System.nanoTime();
+        String s = "Synthesis - " + block_num + " conv blocks, time = " + (end_time-start_time)/1e9/60 + " min";
+        System.out.println(">>>-----------------------------------------------");
+        System.out.println(s);
+        System.out.println(">>>-----------------------------------------------");
+
+        return Design.readCheckpoint(output_path+".dcp");
+    }
 
     public static Design replicateConvBlocks(Design d, int replicate_num){
 
@@ -102,14 +142,14 @@ public class RapidWrightBaseline {
         int blocknum = 1;
         int depth = 0;
 
-        Design one = Vivado.synthesize_vivado(blocknum, part, depth, true);
+        Design one = implement_one_block(blocknum, part, depth, true);
 
         Design d = replicateConvBlocks(one, 480);
         Collection<ModuleInst> moduleInsts = d.getModuleInsts();
-        for (ModuleInst moduleInst : moduleInsts) {
-            ArrayList<Site> avail = moduleInst.getAllValidPlacements();
-            System.out.println("the number of available placement for module: " + moduleInst.getName() + " is " + avail.size());
-        }
+//        for (ModuleInst moduleInst : moduleInsts) {
+//            ArrayList<Site> avail = moduleInst.getAllValidPlacements();
+//            System.out.println("the number of available placement for module: " + moduleInst.getName() + " is " + avail.size());
+//        }
 
         int movesPerTemperature = 200;
         long seed = 1;
@@ -139,10 +179,10 @@ public class RapidWrightBaseline {
         String checkpoint = root + "checkpoint/";
         String results = root + "result/";
 
-        // synthesize
-        Design one = Vivado.synthesize_vivado(1, part, 0, true);
-
+        // implement one conv block as module, and generate entire design
+        Design one = implement_one_block(1, part, 4, true);
         Design d = replicateConvBlocks(one, 480);
+
         Collection<ModuleInst> moduleInsts = d.getModuleInsts();
         List<ModuleInst> moduleInsts1 = new ArrayList<>(moduleInsts);
         ArrayList<Site> avail = moduleInsts1.get(0).getAllValidPlacements();
@@ -167,8 +207,8 @@ public class RapidWrightBaseline {
         String xdc = System.getenv("RAPIDWRIGHT_PATH") + "/src/verilog/dsp_conv_chip.xdc";
 
 
-        rwModulePlacer();
+        //rwModulePlacer();
 
-
+        rwSAPlacer();
     }
 }

@@ -236,11 +236,44 @@ matplotlib               3.0.2
 numpy                    1.17.4     
 ```
 
+### Baseline Experiment: RapidWright's BlockPlacer
+
+We compare RapidLayout's placer with RapidWright's default Simulated Annealing BlockPlacer to see the differences. They both
+re-use pre-implemented modules to achieve high design efficiency. However, RapidWright's block placer area-constrains each module 
+(in our case, a single convolution block), while RapidLayout takes a more fine-grained approach to place each hard block.
+
+To run the RapidWright's BlockPlacer experiment, call
+```bash
+$ java Experiment.RapidWrightBaseline
+
+...
+...
+number of hard macros: 480
+==============================================================================
+==          com.xilinx.rapidwright.placer.blockplacer.BlockPlacer           ==
+==============================================================================
+Initialization Time: 339.928 secs
+ Initial Cost: 0.0
+0.0 0.0 0.0 0.12123835549565654
+0.0 0.0 0.0 0.8886272882972941
+...
+```
+The BlockPlacer is unable to give a legal placement for the design because it cannot accustom to the irregular
+column distribution of hard block resources. RapidWright's BlockPlacer first discovers all available placements for each
+module, then finds the best placement with annealing. 
+
+So, We designed another experiment to observe all available placements found by RapidWright. The results are visualized as follows:
+
+![](https://res.cloudinary.com/dx7aiyb0q/image/upload/a_270/v1585036081/rapidwright_baseline_dst6tw.png)
+
+RapidWright only found available placements in the same columns, which are not enough to place all of the modules. Therefore, 
+RapidWright's default placer could not find a viable placement solution because it cannot map modules to irregular hard block columns.
+
 ### Compare the Performance of Methods
 
 <div align="center">
   <img width="100%" height="45%"
-  src="./images/performance.pdf">
+  src="https://res.cloudinary.com/dx7aiyb0q/image/upload/v1585034471/performance_d1k6i1.jpg">
 </div>
 
 First, build the project with `gradle build -p $RAPIDWRIGHT_PATH` at the project root directory. Then, just run 
@@ -255,7 +288,7 @@ It will run optimization for 100 times, collect model performace data and also t
 
 <div align="center">
   <img width="100%" height="50%"
-  src="./images/convergence.pdf">
+  src="https://res.cloudinary.com/dx7aiyb0q/image/upload/v1585034473/convergence_wlfnqi.jpg">
 </div>
 
 To plot convergence for each method, we have to run `java Experiment.CompareMethods` first to collect convergence data. After that, just run:
@@ -270,7 +303,7 @@ The convergence plot will be save in the `visual` directory.
 
 <div align="center">
   <img width="45%" height="45%"
-  src="./images/sensitivity.pdf">
+  src=https://res.cloudinary.com/dx7aiyb0q/image/upload/v1585034470/sensitivity_dqezpb.jpg>
 </div>
 
 CMA-ES's sensitivity analysis involves changing two parameters, sigma and population in a  range and collect the wirelength result at convergence. Just run:  
@@ -283,7 +316,7 @@ The program will change the parameters and run CMA-ES optimization multiple time
 
 ### Create GIFs for Convergence
 
-![fused](/Users/zhangniansong/Downloads/fused.gif)
+![fused](https://res.cloudinary.com/dx7aiyb0q/image/upload/v1585034473/fused_ib9aks.gif)
 
 Finally, we can produce GIFs of the placement searching process for each method, and this can be done in a single line of command:
 

@@ -14,6 +14,7 @@ import com.xilinx.rapidwright.device.Device;
 import com.xilinx.rapidwright.device.Site;
 import com.xilinx.rapidwright.device.SiteTypeEnum;
 import main.MinRect;
+import org.opt4j.core.common.random.Rand;
 
 import java.util.*;
 
@@ -34,10 +35,14 @@ public class vanillaSA {
     private static DeviceMap deviceMap;
     private static Map<Integer, List<Site[]>> currPlacement = new HashMap<>();
     private static Map<SiteTypeEnum, List<List<Site>>> availSites;
+    private static Map<SiteTypeEnum, int[]> connections = new HashMap<>();
+
+    private static Random rand;
+    private static double temp;
 
 
     public static void random_init(int seed) {
-        Random rand = new Random(seed);
+        rand = new Random(1);
         SiteTypeEnum[] types = new SiteTypeEnum[]{DSP_SITE_TYPE, BRAM_SITE_TYPE, URAM_SITE_TYPE};
         int[] group_sizes = new int[]{dsp_in_group, bram_in_group, uram_in_group};
         int[] group_numbers = new int[]{2,2,1};
@@ -51,10 +56,10 @@ public class vanillaSA {
             int groupSize = group_sizes[i];
             int groupNum = sizeofCol / groupSize;
             List<List<Site>> groups_t = new ArrayList<>();
+            // randomly select groupNum * groupSize sites from each column
+            int[] sel_idx = helper.select_sites(sizeofCol, groupNum * groupSize, rand);
 
             for (int col = 0; col < colNum; col++) {
-                // randomly select groupNum * groupSize sites from each column
-                int[] sel_idx = helper.select_sites(sizeofCol, groupNum * groupSize, rand);
                 // group sel_idx according to groupSize
                 for (int idx = 0; idx < sel_idx.length; idx += groupSize) {
                     int start = sel_idx[idx];
@@ -113,7 +118,6 @@ public class vanillaSA {
         Map<Integer, List<Site[]>> placement = new HashMap<>();
         for (int i=0; i<blocknum; i++)
             placement.put(i, new ArrayList<>());
-        Random rand = new Random();
 
         SiteTypeEnum[] types = new SiteTypeEnum[]{DSP_SITE_TYPE, BRAM_SITE_TYPE, URAM_SITE_TYPE};
         int[] group_sizes = new int[]{dsp_in_group, bram_in_group, uram_in_group};
@@ -149,12 +153,19 @@ public class vanillaSA {
         for (int t=0; t < 3; t++) { // go through each type
             SiteTypeEnum type = types[t];
             List<List<Site>> groups_t = groups.get(type);
-            //System.out.println("groups_t.size = "  + groups_t.size());
-            int[] idxs = helper.rand_idx(groups_t.size(), rand);
+            int[] idxs;
+            if (connections.size() == 3) {
+                idxs = connections.get(type);
+                idxs = helper.mixed_idx(idxs, rand);
+                connections.remove(type);
+            } else {
+                idxs = helper.rand_idx(groups_t.size(), rand);
+            }
+            connections.put(type, idxs);
+
             int i = 0;
 
             for (int n=0; n < blocknum; n++) { // go through each conv unit
-                // extract groups - current type, if bram or dsp then 2 groups, else 1 group
                 List<Site> currTypeGroup = new ArrayList<>();
                 for (int g=0; g < group_numbers[t]; g++) {
                     int idx = idxs[i];
@@ -173,13 +184,16 @@ public class vanillaSA {
     public static double currTemp(int step, double init_temp, int choice, double parameter) {
         // choice:
         // 0 = exponential, 1 = linear, 2 = logarithmic
-        double temp;
         switch (choice) {
             case 0: // exponential
-                temp = init_temp * pow(parameter, step);
+                if (step == 0)
+                    temp = init_temp * pow(parameter, step);
+                else {
+                    temp = temp * parameter;
+                }
                 break;
             case 2: // logarithmic
-                temp = parameter / log(step + 1);
+                temp = init_temp / parameter * log(step + 1);
                 break;
             default: // linear
                 temp = init_temp - parameter * step;
@@ -190,27 +204,24 @@ public class vanillaSA {
     }
 
     public static void run() {
-        int init_temp = 10000;
-        int choice = 0; // 0 = exponential, 1 = linear, 2 = logarithmic
-        double parameter = 0.98;
+        double init_temp = 5e10;
+        int choice = 1; // 0 = exponential, 1 = linear, 2 = logarithmic
+        double parameter = 5;
 
         random_init(1);
 
         double index = 0;
         double standard = 10;
         int check_period = 10000;
-        System.out.println("  step      wirelength      bboxSize");
-        System.out.println("----------------------------------------");
+        System.out.println("  step      wirelength      bboxSize     probability");
+        System.out.println("------------------------------------------------------");
         int step = 0;
         while (true) {
             Utility curr = new Utility(currPlacement, device);
             double currWirelength = curr.getUnifiedWireLength();
             double currBBox = curr.getMaxBBoxSize();
             double currValue = pow(currWirelength, 2) * currBBox;
-
-            // print information
-            if (step % 1000 == 0)
-                System.out.println(step + "\t\t" + currWirelength + "\t\t" +  currBBox);
+            //double currValue = curr.getMaxWireLength();
 
             // get new placement
             Map<Integer, List<Site[]>> nextPlacement = get_neighbor();
@@ -218,25 +229,31 @@ public class vanillaSA {
             double nextWirelength = next.getUnifiedWireLength();
             double nextBBox = next.getMaxBBoxSize();
             double nextValue = pow(nextWirelength, 2) * nextBBox;
+            //double nextValue = curr.getMaxWireLength();
 
             double temp = currTemp(step, init_temp, choice, parameter);
+            double prob = 0;
 
             if (nextValue < currValue) {
                 currPlacement = nextPlacement;
             } else {
-                double prob = exp(-(nextValue - currValue)/temp);
+                prob = exp(-(nextValue - currValue)/temp);
                 Random rand = new Random();
                 if (rand.nextDouble() < prob)
                     currPlacement = nextPlacement;
             }
 
+            // print information
+            if (step % 10000 == 0)
+                System.out.println(step + "\t\t" + currWirelength + "\t\t" +  currBBox + "\t\t" + prob);
+
             step++;
 
             // stop criterion
-            if (step % check_period == 0)
-                index = currValue;
-            else if (Math.abs(nextValue - index) < standard)
-                break;
+//            if (step % check_period == 0)
+//                index = currValue;
+//            else if (Math.abs(nextValue - index) < standard)
+//                break;
         }
 
     }
@@ -261,6 +278,7 @@ public class vanillaSA {
             List<Site[]> l = new ArrayList<>();
             currPlacement.put(i, l);
         }
+
     }
 
 
@@ -274,13 +292,18 @@ public class vanillaSA {
 
         setParam();
 
-
         run();
 
         deviceMap.printCurrentMapStatus();
 
     }
 }
+
+
+
+
+
+
 
 class helper {
 
@@ -319,4 +342,80 @@ class helper {
 
         return b;
     }
+
+    public static int[] swap_idx(int[] connection, Random rand) {
+        int size = connection.length;
+        List<Integer> newList = new ArrayList<>();
+        for (int value : connection) newList.add(value);
+        if (size > 1) {
+            int i = rand.nextInt(size);
+            int j;
+            do {
+                j = rand.nextInt(size);
+            } while (j==i);
+            Collections.swap(newList, i, j);
+        }
+        int[] newArray = new int[size];
+        for (int i=0; i < size; i++) {
+            newArray[i] = newList.get(i);
+        }
+        return newArray;
+    }
+
+    public static int[] insert_idx(int[] connection, Random rand) {
+        int size = connection.length;
+        List<Integer> newList = new ArrayList<>();
+        for (int value : connection) newList.add(value);
+        if (size > 1) {
+            final int i = rand.nextInt(size);
+            Integer object = newList.remove(i);
+            final int j = rand.nextInt(newList.size());
+            newList.add(j, object);
+        }
+        int[] newArray = new int[size];
+        for (int i=0; i < size; i++) {
+            newArray[i] = newList.get(i);
+        }
+        return newArray;
+    }
+
+    public static int[] revert_idx(int[] connection, Random rand) {
+        int size = connection.length;
+        List<Integer> newList = new ArrayList<>();
+        for (int value : connection) newList.add(value);
+
+        if (size > 1) {
+            int a = rand.nextInt(size - 1);
+            int b;
+            do {
+                b = a + rand.nextInt(size - a);
+            } while (b == a);
+
+            while (a < b) {
+                Collections.swap(newList, a, b);
+                a++;
+                b--;
+            }
+        }
+
+        int[] newArray = new int[size];
+        for (int i=0; i < size; i++) {
+            newArray[i] = newList.get(i);
+        }
+        return newArray;
+    }
+
+    public static int[] mixed_idx(int[] connection, Random rand) {
+        if (rand.nextDouble() < 0.33) {
+            connection = swap_idx(connection, rand);
+        } else if (rand.nextBoolean()) {
+            connection = insert_idx(connection, rand);
+        } else {
+            connection = revert_idx(connection, rand);
+        }
+
+        return connection;
+    }
+
+
 }
