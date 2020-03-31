@@ -70,6 +70,8 @@ public class PlaceCreator implements Creator<CompositeGenotype<SiteTypeEnum, Gen
 
 
     public CompositeGenotype<SiteTypeEnum, Genotype> create() {
+        Random random = new Random(1);
+
         Design d = new Design("design", device);
         Device dev = d.getDevice();
 
@@ -95,17 +97,17 @@ public class PlaceCreator implements Creator<CompositeGenotype<SiteTypeEnum, Gen
         for (int i = 0; i < block_num; i++)
             uramMapping.add(i);
 
-        dspColNum.init(new Random(), map.get(DSP_SITE_TYPE).size());
-        bramColNum.init(new Random(), map.get(BRAM_SITE_TYPE).size());
-        uramColNum.init(new Random(), map.get(URAM_SITE_TYPE).size());
+        dspColNum.init(random, map.get(DSP_SITE_TYPE).size());
+        bramColNum.init(random, map.get(BRAM_SITE_TYPE).size());
+        uramColNum.init(random, map.get(URAM_SITE_TYPE).size());
 
-        dspLoc.init(new Random(), block_num * 2);
-        bramLoc.init(new Random(), block_num * 2);
-        uramLoc.init(new Random(), block_num);
+        dspLoc.init(random, block_num * 2);
+        bramLoc.init(random, block_num * 2);
+        uramLoc.init(random, block_num);
 
-        dspMapping.init(new Random());
-        bramMapping.init(new Random());
-        uramMapping.init(new Random());
+        dspMapping.init(random);
+        bramMapping.init(random);
+        uramMapping.init(random);
 
         genotype.put(DSP_SITE_TYPE, dspColNum);
         genotype.put(BRAM_SITE_TYPE, bramColNum);

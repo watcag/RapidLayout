@@ -40,21 +40,8 @@ public class PlaceEvaluator implements Evaluator <Map<Integer, List<Site[]>>> {
 
         Utility U = new Utility(phenotype, device);
 
-        double areaPerBlock = U.AreaPerBlock();
         double unifWireLen = U.getUnifiedWireLength();
-        double bottomLeft = U.getCoord();
-        double maxWireLen = U.getMaxWireLength();
-        double maxRange = U.getMaxSpread();
-        double maxArea = U.getMaxArea();
-        double[] utilization = U.getUtilization();
-        double value = (areaPerBlock/100) * (unifWireLen/100) * (bottomLeft/10);
         double maxSize = U.getMaxBBoxSize();
-        if (U.checkDuplicate()){
-            value *= 1000;
-            utilization[0] = 0;
-            utilization[1] = 0;
-            utilization[2] = 0;
-        }
 
         // Observe Evaluation of Current Individual
         Objectives objectives = new Objectives();
@@ -62,12 +49,12 @@ public class PlaceEvaluator implements Evaluator <Map<Integer, List<Site[]>>> {
         {
             objectives.add("Spread", Objective.Sign.MIN, maxSize);
             objectives.add("unifWireLength", Objective.Sign.MIN, unifWireLen * unifWireLen);
-            //System.out.println("two objectives");
+        } else if (method.equals("GA")) {
+            objectives.add("size", Objective.Sign.MIN, maxSize);
         } else {
             objectives.add("Spread", Objective.Sign.MIN, maxSize);
             objectives.add("unifWireLength", Objective.Sign.MIN, unifWireLen * unifWireLen);
             objectives.add("product", Objective.Sign.MIN, unifWireLen * unifWireLen * maxSize);
-            //System.out.println("three objectives -> one objective");
         }
 
 

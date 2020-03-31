@@ -205,6 +205,8 @@ public class Tool {
         for (int i = 0; i < replicate_num; i++){
             //EDIFCell template = cloneEDIFCell(template_old, "_"+i);
             EDIFCell template = template_old;
+            // added on 2020.03.31, trying to rename parent edif cellname to avoid naming conflict
+            template.rename(  "dsp_conv_top_" + i);
 
             Cell new_bebe = bebes.createCell("name["+i+"].dut", template);
             EDIFCellInst cellInst = new_bebe.getEDIFCellInst();

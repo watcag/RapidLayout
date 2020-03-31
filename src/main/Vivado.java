@@ -20,16 +20,16 @@ public class Vivado {
         long start_time = System.nanoTime();
 
         // synthesize seed first, if seed is not available
-        String seed_path = checkpoint + "seed.dcp";
+        String seed_path = checkpoint + "seed" + depth + ".dcp";
         File seed_file = new File(seed_path);
         if (!seed_file.exists())
-            synthesize_seed(part, depth, verbose);
+            synthesize_seed(part, depth, checkpoint + "seed" + depth, verbose);
         else{
             Design d = Design.readCheckpoint(seed_path);
             Design temp_d = new Design("temp", device);
             if (!d.getPartName().equals(temp_d.getPartName())) { // if the seed is not compatible
                 System.out.println(">>>>WARNING<<<<  -- Seed's Device Part Name is different from requested, redo seed synthesis......");
-                synthesize_seed(part, depth, verbose);
+                synthesize_seed(part, depth, seed_path, verbose);
             }
         }
 
@@ -85,9 +85,8 @@ public class Vivado {
         return Design.readCheckpoint(output_path+".dcp");
     }
 
-    public static void synthesize_seed(String part, int depth, boolean verbose){
+    public static void synthesize_seed(String part, int depth, String output_path, boolean verbose){
         String tcl_path = tcl + "synth_seed.tcl";
-        String output_path = checkpoint + "seed";
 
         // write tcl script
         try (FileWriter write = new FileWriter(tcl_path)) {

@@ -9,56 +9,31 @@ import main.Tool;
 import org.opt4j.core.Individual;
 import org.opt4j.core.Objective;
 import org.opt4j.core.Objectives;
+import org.opt4j.core.common.completer.IndividualCompleterModule;
 import org.opt4j.core.optimizer.Archive;
 import org.opt4j.core.optimizer.Control;
 import org.opt4j.core.optimizer.OptimizerIterationListener;
 import org.opt4j.core.start.Opt4JModule;
 import org.opt4j.core.start.Opt4JTask;
-import org.opt4j.optimizers.sa.CoolingSchedule;
-import org.opt4j.optimizers.sa.CoolingScheduleModule;
-import org.opt4j.optimizers.sa.SimulatedAnnealingModule;
+import org.opt4j.optimizers.ea.EvolutionaryAlgorithmModule;
+import org.opt4j.optimizers.ea.Nsga2Module;
 import org.opt4j.viewer.ViewerModule;
 
-import java.io.*;
+import java.io.File;
+import java.io.FileWriter;
+import java.io.IOException;
+import java.io.PrintWriter;
 import java.util.*;
 
 import static main.Tool.changeProperty;
 
-
-class Global {
-    public static String method;
-    public static String time = "";
-    public static String schedule = "";
-}
-
-public class TuneSA {
-
-    static class CoolingScheduleLinear implements CoolingSchedule {
-        @Override
-        // linear
-//        public double getTemperature(int i, int n) {
-//            Global.schedule = "10*n-100*i";
-//            return 10*n-100*i;
-//        }
-//        public double getTemperature(int i, int n) {
-//            // tn + t0 * Math.pow(alpha, i)
-//            Global.schedule = "alpha=85%";
-//            return 100 + 100 * Math.pow(0.85, i);
-//        }
-        public double getTemperature(int i, int n) {
-            Global.schedule = "hyp-tn=100t0=1000";
-            double tn = 100;
-            double t0 = 1000;
-            return t0 * Math.pow((tn/t0), (double)i/(double)n);
-        }
-    }
+public class TuneGA {
 
     public static class monitor implements OptimizerIterationListener {
         Archive archive;
         Control control;
         int old_iteration;
-        double old_size;
-        double old_wirelength;
+        double old_score;
 
         @Inject
         public monitor(Archive archive, Control control) {
@@ -71,7 +46,6 @@ public class TuneSA {
         @SuppressWarnings({"unchecked", "rawtypes"})
         public void iterationComplete(int i) {
             // this function is called every time a iteration completes
-
             // select best individual
             Individual best = null;
             int iterator = 0;
@@ -97,26 +71,28 @@ public class TuneSA {
 
             // convergence checker
             assert best != null;
-            int checkPeriod = (int)1e6;
+            int checkPeriod = 3000;
 
             Objectives objectives = best.getObjectives();
             if (i % checkPeriod == 0) {
-                old_size = objectives.get(new Objective("Spread")).getDouble();
-                old_wirelength = objectives.get(new Objective("unifWireLength")).getDouble();
+                old_score = best.getObjectives().get(new Objective("size")).getDouble();
                 old_iteration = i;
             }
 
-            double size = objectives.get(new Objective("Spread")).getDouble();
-            double wirelength = objectives.get(new Objective("unifWireLength")).getDouble();
+            double currScore = best.getObjectives().get(new Objective("size")).getDouble();
 
-            if (size >= old_size - 10 && wirelength >= old_wirelength - 1e5 && i > 2 * checkPeriod && i % checkPeriod == checkPeriod - 1) {
+            if (old_score - currScore <= 10 && i > 2 * checkPeriod && i % checkPeriod == checkPeriod - 1) {
                 System.out.println("Terminated at iteration: " + i);
                 control.doTerminate();
             }
 
+            Utility U = new Utility((Map<Integer, List<Site[]>>)best.getPhenotype(), "xcvu11p");
+            double wirelength = U.getUnifiedWireLength();
+            double size = U.getMaxBBoxSize();
+
             // data collection options
-            if (i % 1000 == 0) {
-                String converge_data_path = System.getenv("RAPIDWRIGHT_PATH") + "/result/SA" + "_convergence_data";
+            if (i % 100 == 0) {
+                String converge_data_path = System.getenv("RAPIDWRIGHT_PATH") + "/result/GA_convergence_data";
                 File data_path = new File(converge_data_path);
                 if (data_path.mkdirs())
                     System.out.println("directory " + data_path + " is created");
@@ -134,40 +110,44 @@ public class TuneSA {
     }
 
 
-
     public static double[] run() {
 
-        boolean visual = false;
-        String device = "xcvu11p";
+        String method = "GA";
+        int population = 5;
+        int parents = 100;
+        int children = 200;
+        double crossoverR = 1;
 
-        Global.method = "SA";
+        boolean visual = true;
+        String device = "xcvu11p";
+        Global.method = method;
         Global.time = "run_at_" + System.currentTimeMillis();
         int iteration = (int)1e8;
 
-        SimulatedAnnealingModule sa = new SimulatedAnnealingModule();
-        sa.setIterations(iteration);
+        EvolutionaryAlgorithmModule evolutionaryAlgorithmModule = new EvolutionaryAlgorithmModule();
+        evolutionaryAlgorithmModule.setGenerations(iteration);
+        evolutionaryAlgorithmModule.setAlpha(population); // population size
+        evolutionaryAlgorithmModule.setMu(parents); // number of parents
+        evolutionaryAlgorithmModule.setLambda(children); // number of children
+        evolutionaryAlgorithmModule.setCrossoverRate(crossoverR);
 
-        CoolingScheduleModule coolingScheduleModule = new CoolingScheduleModule() {
-            @Override
-            protected void config() {
-                bindCoolingSchedule(CoolingScheduleLinear.class);
-            }
-        };
+        Nsga2Module nsga2Module = new Nsga2Module();
+        nsga2Module.setTournament(1);
 
         // initialize placement module and set parameters
         PlaceModule placementModule = new PlaceModule();
         placementModule.setBlock_num(80);
-        placementModule.setDevice("xcvu11p");
+        placementModule.setDevice(device);
         placementModule.setX_min(0);
         placementModule.setX_max(6000);
         placementModule.setY_min(0);
         placementModule.setY_max(240);
-        placementModule.setMethod("SA");
+        placementModule.setMethod(method);
 
 
         ViewerModule viewer = new ViewerModule();
         viewer.setCloseOnStop(false);
-        viewer.setTitle("Placement: " + 80 + "-block " + "SA");
+        viewer.setTitle("Placement: " + 80 + "-block " + method);
 
         Opt4JModule observer = new Opt4JModule() {
             @Override
@@ -176,18 +156,29 @@ public class TuneSA {
             }
         };
 
+        // parallel decoding and evalutation
+        IndividualCompleterModule individualCompleterModule = new IndividualCompleterModule();
+        individualCompleterModule.setThreads(1000);
+        individualCompleterModule.setType(IndividualCompleterModule.Type.PARALLEL);
+
+        // random module
+        org.opt4j.core.common.random.RandomModule randomModule = new org.opt4j.core.common.random.RandomModule();
+        randomModule.setSeed(1);
+
 
         // Optimization Task Initialization
         Opt4JTask task = new Opt4JTask(false);
 
         Collection<Module> modules = new ArrayList<>();
-        modules.add(sa);
-        modules.add(coolingScheduleModule);
-        modules.add(placementModule);
+        modules.add(evolutionaryAlgorithmModule);
+        modules.add(individualCompleterModule);
 
+        modules.add(placementModule);
         if (visual)
             modules.add(viewer);
         modules.add(observer);
+
+        //modules.add(randomModule);
 
         task.init(modules);
 
@@ -205,15 +196,10 @@ public class TuneSA {
                     iterator++;
                     continue;
                 }
-                double sumOfObjectives = 0;
-                for (Objective objective : individual.getObjectives().getKeys())
-                    sumOfObjectives += individual.getObjectives().get(objective).getDouble();
 
-                double sumOfCurrentObjectives = 0;
-                for (Objective objective : best.getObjectives().getKeys())
-                    sumOfCurrentObjectives += best.getObjectives().get(objective).getDouble();
-
-                if (sumOfObjectives < sumOfCurrentObjectives)
+                double score = individual.getObjectives().get(new Objective("size")).getDouble();
+                double bestScore = best.getObjectives().get(new Objective("size")).getDouble();
+                if (score < bestScore)
                     best = individual;
 
                 iterator++;
@@ -228,12 +214,12 @@ public class TuneSA {
             map.putAll(phenotype);
 
             // collect results
-            String results_path = System.getenv("RAPIDWRIGHT_PATH") + "/result/SA" + "_results";
+            String results_path = System.getenv("RAPIDWRIGHT_PATH") + "/result/" + "GA_results";
             File data_path = new File(results_path);
             if (data_path.mkdirs())
                 System.out.println("directory " + data_path + " is created");
 
-            String xdcName = results_path + "/SA-" + size + ".xdc";
+            String xdcName = results_path + "/GA" + "-" + size + ".xdc";
             Tool.write_XDC(map, new PrintWriter(new FileWriter(xdcName), true));
 
             return new double[]{size, unitWireLength};
@@ -247,8 +233,10 @@ public class TuneSA {
         return new double[]{};
     }
 
+
+
     public static void collect_data() throws IOException {
-        String perfFile = System.getenv("RAPIDWRIGHT_PATH") + "/result/SA_perf.txt";
+        String perfFile = System.getenv("RAPIDWRIGHT_PATH") + "/result/GA_perf.txt";
         int times = 100;
 
         PrintWriter pr = new PrintWriter(new FileWriter(perfFile, true), true);
@@ -268,6 +256,7 @@ public class TuneSA {
 
             pr.println(secs + " " + perfs[0] + " " + perfs[1]);
         }
+
 
     }
 
