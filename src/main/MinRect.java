@@ -37,16 +37,17 @@ public class MinRect {
         System.out.println("DSP: " + map.get(DSP_SITE_TYPE).size() + " x " + map.get(DSP_SITE_TYPE).get(0).size());
         System.out.println("BRAM: " + map.get(BRAM_SITE_TYPE).size() + " x " + map.get(BRAM_SITE_TYPE).get(0).size());
         System.out.println("URAM: " + map.get(URAM_SITE_TYPE).size() + " x " + map.get(URAM_SITE_TYPE).get(0).size());
-        int max_dsp_num = map.get(DSP_SITE_TYPE).get(0).size() / 9 * map.get(DSP_SITE_TYPE).size() * 2;
-        int max_bram_num = map.get(BRAM_SITE_TYPE).get(0).size() / 4 * map.get(BRAM_SITE_TYPE).size() * 2;
+        System.out.println("number of SLR: " + this.device.getSLRs().length);
+        // int max_dsp_num = map.get(DSP_SITE_TYPE).get(0).size() / 9 * map.get(DSP_SITE_TYPE).size() * 2;
+        // int max_bram_num = map.get(BRAM_SITE_TYPE).get(0).size() / 4 * map.get(BRAM_SITE_TYPE).size() * 2;
+        int max_dsp_num = map.get(DSP_SITE_TYPE).get(0).size() / 9 * map.get(DSP_SITE_TYPE).size() / 2;
+        int max_bram_num = map.get(BRAM_SITE_TYPE).get(0).size() / 4 * map.get(BRAM_SITE_TYPE).size() / 2;
         int max_uram_num = map.get(URAM_SITE_TYPE).get(0).size() / 2 * map.get(URAM_SITE_TYPE).size();
         int blocks = Math.min(Math.min(max_dsp_num, max_bram_num), max_uram_num);
         System.out.println("max number of block = " + blocks);
 
         int numSLR = this.device.getNumOfSLRs();
         int blocksPerSLR = blocks / numSLR;
-
-
 
         int ymax = 0;
         SLR SLR0 = this.device.getSLR(0);
@@ -85,6 +86,12 @@ public class MinRect {
                 this.ymax = y;
                 this.replication = divisor;
             }
+        }
+
+        if (this.blockNum == 0) { // if the blockn is indivisible by 2
+            this.blockNum = blocksPerSLR;
+            this.ymax = ymax;
+            this.replication = 1;
         }
     }
 

@@ -1,6 +1,7 @@
 package Experiment;
 
 
+import Utils.Utility;
 import com.xilinx.rapidwright.design.Design;
 import com.xilinx.rapidwright.device.Site;
 import main.AutoPipeline;
@@ -39,7 +40,9 @@ public class EvaluateFmax {
 
         // read in 80 block placement and replicate to 1 SLR
         Map<Integer, List<Site[]>> p = Tool.getMapFromXDC(xdcFile, device);
-        Map<Integer, List<Site[]>> placement = AutoPlacement.populateFixed(p, device, 2);
+        Map<Integer, List<Site[]>> placement = method.equals("Manual")
+                ? p
+                : AutoPlacement.populateFixed(p, device, 2);
 
         // placement
         System.out.println("Placement Start...");
@@ -51,7 +54,8 @@ public class EvaluateFmax {
         d.routeSites();
 
         // pipeline
-        AutoPipeline.fixed_pipeline(d, depth, 160);
+        if (depth > 0)
+            AutoPipeline.fixed_pipeline(d, depth, 160);
 
         // route and report frequency
         String placedDCPPath = checkpoint + method + "_placed.dcp";
@@ -93,21 +97,41 @@ public class EvaluateFmax {
 
             if (f.isDirectory()) continue;
 
-            // setup optimization perf information
-            String name = f.getName();
-            double bboxSize = Double.parseDouble(name.substring(method.length()+1, name.length()-4));
-            double[] perfs = Helpers.getOptPerf(method, bboxSize);
-            double optRuntime = perfs[0];
-            double wirelength = perfs[2];
+            if (method.equals("Manual")) {
+                Map<Integer, List<Site[]>> manual_pl = Tool.getMapFromXDC(f.getAbsolutePath(), device);
+                Utility U = new Utility(manual_pl, device);
+                double bboxSize = U.getMaxBBoxSize();
+                double wirelength = U.getUnifiedWireLength();
 
-            // implement the placement
-            int pipeline = 4;
-            double[] impl = evaluate(f.getAbsolutePath(), method, bboxSize, pipeline);
-            double freq = impl[0];
-            double implRuntime = impl[1];
+                // implement the placement
+                for (int pipeline = 0; pipeline <= 4; pipeline++) {
+                    double[] impl = evaluate(f.getAbsolutePath(), method, bboxSize, pipeline);
+                    double freq = impl[0];
+                    double implRuntime = impl[1];
 
-            pw.println(implRuntime + " " + pipeline + " " + freq + " " + optRuntime + " " + bboxSize + " " + wirelength);
-            System.out.println("$$ Implementation Runtime: " + implRuntime + " FMax = " + freq);
+                    pw.println(implRuntime + " " + pipeline + " " + freq + " " + 0 + " " + bboxSize + " " + wirelength);
+                    System.out.println("$$ Implementation Runtime: " + implRuntime + " FMax = " + freq + " pipeline = " + pipeline);
+                }
+
+            } else {
+
+                // setup optimization perf information
+                String name = f.getName();
+                double bboxSize = Double.parseDouble(name.substring(method.length() + 1, name.length() - 4));
+                double[] perfs = Helpers.getOptPerf(method, bboxSize);
+                double optRuntime = perfs[0];
+                double wirelength = perfs[2];
+
+                // implement the placement
+                for (int pipeline = 0; pipeline <= 4; pipeline++) {
+                    double[] impl = evaluate(f.getAbsolutePath(), method, bboxSize, pipeline);
+                    double freq = impl[0];
+                    double implRuntime = impl[1];
+
+                    pw.println(implRuntime + " " + pipeline + " " + freq + " " + optRuntime + " " + bboxSize + " " + wirelength);
+                    System.out.println("$$ Implementation Runtime: " + implRuntime + " FMax = " + freq + " pipeline = " + pipeline);
+                }
+            }
         }
 
         pw.close();
@@ -128,7 +152,7 @@ public class EvaluateFmax {
         *  output: checkpoint/METHOD_eval/BBOXSIZE_FREQMHz.dcp
         * */
 
-        String method = "EA"; // SA, EA, EA-reduced, CMA, GA, Manual
+        String method = "EA-reduced"; // SA, EA, EA-reduced, CMA, GA, Manual
 
         oneBatch(method);
 

@@ -134,22 +134,6 @@ public class TransferDevice {
         Tool.changeProperty("transfer", "true");
         Tool.changeProperty("initial_xdc", orig_xdc_part);
 
-//        Opt.StartOptimization opt = new Opt.StartOptimization();
-//        Map<Integer, List<Site[]>> optPlace = opt.main(
-//                blockn, device, visual, method,
-//                population, parents, children, crossoverR,
-//                x_min, x_max, y_min, y_max
-//        );
-
-
-//        pw = new PrintWriter(new FileWriter(adapted), true);
-//        Tool.write_XDC(optPlace, pw);
-//        pw.close();
-//
-//        String visual3 = "python3 " + root + "src/visualize/overall_visual.py " + adapted + " " + root + "result/visual/";
-//
-//        Tool.execute_cmd(visual3);
-
         Map<Integer, List<Site[]>> optPlace = Tool.getMapFromXDC(adapted, device);
 
 

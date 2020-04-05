@@ -134,6 +134,8 @@ public class PlaceCreator implements Creator<CompositeGenotype<SiteTypeEnum, Gen
         String prev_placement_xdc = prop.getProperty("initial_xdc");
 
         if (transfer) {
+            System.out.println("--- $$ Transfer Learning $$ ---");
+            System.out.println("Getting result from: " + prev_placement_xdc);
             // turn off transfer after the initialization
             Map<Integer, List<Site[]>> prev = null;
             try {

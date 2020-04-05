@@ -124,7 +124,7 @@ public class TuneSA {
                 try {
                     FileWriter this_run_fw = new FileWriter(this_run, true);
                     PrintWriter this_run_pw = new PrintWriter(this_run_fw, true);
-                    this_run_pw.println(i + " " + wirelength + " " + size);
+                    this_run_pw.println(i + " " + Math.sqrt(wirelength) + " " + size);
                 } catch (IOException e) {
                     e.printStackTrace();
                 }

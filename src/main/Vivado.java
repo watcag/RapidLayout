@@ -54,7 +54,7 @@ public class Vivado {
 
     public static Design synthesize_vivado(int block_num, String part, int depth, boolean verbose){
         String tcl_path = tcl + "synth.tcl";
-        String output_path = checkpoint + "blockNum=" + block_num;
+        String output_path = checkpoint + block_num + "_" + part + "_" + depth;
         File checkpoint = new File(output_path+".dcp");
 
         if (checkpoint.exists())

@@ -82,7 +82,7 @@ def plot_tuning(savePath):
 
     plt.style.use('seaborn-paper')
     fig, ax = plt.subplots()
-    fig.set_size_inches(5, 4)
+    fig.set_size_inches(5, 3.5)
     ax.autoscale(True)
     ax.set_yscale('log')
 
@@ -102,7 +102,7 @@ def plot_tuning(savePath):
     handles, labels = ax.get_legend_handles_labels()
     # fig.legend(handles, labels, loc='upper center', prop={'size': 20}, ncol=4, bbox_to_anchor=(0.5, 0.94),
     #            frameon=False)
-    fig.legend(handles, labels, loc='upper right', prop={'size': 20}, frameon=False, bbox_to_anchor=(1.0, 0.83))
+    fig.legend(handles, labels, loc='upper right', prop={'size': 15}, frameon=False, bbox_to_anchor=(0.98, 0.99), ncol=1)
 
     formatter0 = EngFormatter(unit=' ')
     ax.xaxis.set_major_formatter(formatter0)
@@ -112,8 +112,8 @@ def plot_tuning(savePath):
 
     plt.tight_layout()
 
-    plt.subplots_adjust(bottom=0.15)
-    plt.subplots_adjust(top=0.83)
+    # plt.subplots_adjust(bottom=0.15)
+    #plt.subplots_adjust(top=0.83)
 
     outputImg = savePath + "/Annealing-Tuning.pdf"
     plt.savefig(outputImg)
