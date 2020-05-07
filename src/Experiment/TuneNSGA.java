@@ -117,7 +117,7 @@ public class TuneNSGA {
         int children = 200;
         double crossoverR = 1;
 
-        boolean visual = false;
+        boolean visual = true;
         String device = "xcvu11p";
         Global.method = method;
         Global.time = "run_at_" + System.currentTimeMillis();
@@ -157,7 +157,8 @@ public class TuneNSGA {
 
         // parallel decoding and evalutation
         IndividualCompleterModule individualCompleterModule = new IndividualCompleterModule();
-        individualCompleterModule.setThreads(1000);
+        // Multi-threading enabled, change threads here
+        individualCompleterModule.setThreads(100);
         individualCompleterModule.setType(IndividualCompleterModule.Type.PARALLEL);
 
         // Optimization Task Initialization

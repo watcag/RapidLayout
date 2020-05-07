@@ -181,8 +181,12 @@ def plot_comparison2(dataPath, imagePath):
     plt.style.use('seaborn-paper')
 
     # wirelength^2
-    fig, (ax, ax2) = plt.subplots(1, 2)
-    fig.set_size_inches(10, 4)
+    fig, axes = plt.subplots(2,2)
+    ax = axes[0,0]
+    ax2 = axes[0,1]
+    ax3 = axes[1,0]
+    ax4 = axes[1,1]
+    fig.set_size_inches(15, 12)
     cma_t, cma_s, cma_w = read_data(dataPath + '/CMA_perf.txt')
     sa_t, sa_s, sa_w = read_data(dataPath + '/SA_perf.txt')
     ea_t, ea_s, ea_w = read_data(dataPath + '/EA_perf.txt')
@@ -223,6 +227,27 @@ def plot_comparison2(dataPath, imagePath):
     for i, w in enumerate(ga_w):
         ga_w[i] = w * w
 
+    ax.scatter(sa_w, sa_t, s=200, marker='o', label="Annealing", alpha=0.6)
+    ax.scatter(ea_w, ea_t, s=200, marker='^', label="NSGA-II", alpha=0.6)
+    ax.scatter(ear_w, ear_t, s=200, marker='^', label="NSGA-II(Red)", alpha=0.6)
+    ax.scatter(cma_w, cma_t, s=230, marker='*', label="CMA-ES", alpha=0.6)
+    ax.scatter(ga_w, ga_t, s=200, marker='^', label="GA", alpha=0.6, color='#17becf')
+    ax.scatter(vpr_w, vpr_t, s=230, marker='o', label="VPR", alpha=0.6)
+    ax.scatter(ut_w, ut_t, s=200, marker='P', label="UTPlaceF", alpha=0.6)
+    ax.set_xlabel("$\mathrm{wirelength^2}$", fontsize=18)
+    ax.set_ylabel("runtime (sec)", fontsize=18)
+
+    ax2.scatter(sa_s, sa_t, s=200, marker='o', label="Annealing", alpha=0.6)
+    ax2.scatter(ea_s, ea_t, s=200, marker='^', label="NSGA-II", alpha=0.6)
+    ax2.scatter(ear_s, ear_t, s=200, marker='^', label="NSGA-II(Red)", alpha=0.6)
+    ax2.scatter(cma_s, cma_t, s=230, marker='*', label="CMA-ES", alpha=0.6)
+    ax2.scatter(ga_s, ga_t, s=200, marker='^', label="GA", alpha=0.6, color='#17becf')
+    ax2.scatter(vpr_s, vpr_t, s=230, marker='o', label="VPR", alpha=0.6)
+    ax2.scatter(ut_s, ut_t, s=200, marker='P', label="UTPlaceF", alpha=0.6)
+    ax2.set_xlabel("BboxSize", fontsize=18)
+    # ax2.set_ylabel("runtime (sec)", fontsize=18)
+    # ax2.set_yticks([])
+
     # wl^2 * bbox
     for i, w in enumerate(cma_w):
         cma_w[i] = w * cma_s[i]
@@ -239,15 +264,15 @@ def plot_comparison2(dataPath, imagePath):
     for i, w in enumerate(ga_w):
         ga_w[i] = w * ga_s[i]
 
-    ax.scatter(sa_w, sa_t, s=200, marker='o', label="Annealing", alpha=0.6)
-    ax.scatter(ea_w, ea_t, s=200, marker='^', label="NSGA-II", alpha=0.6)
-    ax.scatter(ear_w, ear_t, s=200, marker='^', label="NSGA-II(Red)", alpha=0.6)
-    ax.scatter(cma_w, cma_t, s=230, marker='*', label="CMA-ES", alpha=0.6)
-    ax.scatter(ga_w, ga_t, s=200, marker='^', label="GA", alpha=0.6, color='#17becf')
-    ax.scatter(vpr_w, vpr_t, s=230, marker='o', label="VPR", alpha=0.6)
-    ax.scatter(ut_w, ut_t, s=200, marker='P', label="UTPlaceF", alpha=0.6)
-    ax.set_xlabel("$\mathrm{wirelength^2 \\times BboxSize}$", fontsize=18)
-    ax.set_ylabel("runtime (sec)", fontsize=18)
+    ax3.scatter(sa_w, sa_t, s=200, marker='o', label="Annealing", alpha=0.6)
+    ax3.scatter(ea_w, ea_t, s=200, marker='^', label="NSGA-II", alpha=0.6)
+    ax3.scatter(ear_w, ear_t, s=200, marker='^', label="NSGA-II(Red)", alpha=0.6)
+    ax3.scatter(cma_w, cma_t, s=230, marker='*', label="CMA-ES", alpha=0.6)
+    ax3.scatter(ga_w, ga_t, s=200, marker='^', label="GA", alpha=0.6, color='#17becf')
+    ax3.scatter(vpr_w, vpr_t, s=230, marker='o', label="VPR", alpha=0.6)
+    ax3.scatter(ut_w, ut_t, s=200, marker='P', label="UTPlaceF", alpha=0.6)
+    ax3.set_xlabel("$\mathrm{wirelength^2 \\times BboxSize}$", fontsize=18)
+    ax3.set_ylabel("runtime (sec)", fontsize=18)
 
 
     cma_t, cma_f = read_freq(dataPath + '/eval/CMA_eval.txt')
@@ -264,24 +289,30 @@ def plot_comparison2(dataPath, imagePath):
 
 
 
-    ax2.scatter(sa_f, sa_t, s=200, marker='o', label="Annealing", alpha=0.6)
-    ax2.scatter(ea_f, ea_t, s=200, marker='^', label="NSGA-II", alpha=0.6)
-    ax2.scatter(ear_f, ear_t, s=200, marker='^', label="NSGA-II (Red)", alpha=0.6)
-    ax2.scatter(cma_f, cma_t, s=200, marker='*', label="CMA-ES", alpha=0.6)
-    ax2.scatter(ga_f, ga_t, s=200, marker='^', label="GA", alpha=0.6, color='#17becf')
-    ax2.set_xlabel("clock frequency (MHz)", fontsize=18)
-    ax2.set_yticks([])
+    ax4.scatter(sa_f, sa_t, s=200, marker='o', label="Annealing", alpha=0.6)
+    ax4.scatter(ea_f, ea_t, s=200, marker='^', label="NSGA-II", alpha=0.6)
+    ax4.scatter(ear_f, ear_t, s=200, marker='^', label="NSGA-II (Red)", alpha=0.6)
+    ax4.scatter(cma_f, cma_t, s=200, marker='*', label="CMA-ES", alpha=0.6)
+    ax4.scatter(ga_f, ga_t, s=200, marker='^', label="GA", alpha=0.6, color='#17becf')
+    ax4.set_xlabel("clock frequency (MHz)", fontsize=18)
+    ax4.set_ylim(ax3.get_ylim())
+    # ax4.set_yticks([])
 
     plt.axvline(650, color='red', linestyle='--')
 
 
     handles, labels = ax.get_legend_handles_labels()
-    fig.legend(handles, labels, loc='upper center', prop={'size': 17}, ncol=4, bbox_to_anchor=(0.5, 1.05),
+    # fig.legend(handles, labels, loc='upper center', prop={'size': 17}, ncol=4, bbox_to_anchor=(0.5, 1.05),
+    #            frameon=False)
+
+    fig.legend(handles, labels, loc='upper center', prop={'size': 22}, ncol=4, bbox_to_anchor=(0.5, 0.95 ),
                frameon=False)
 
     ax.tick_params(axis='both', which='major', labelsize=16)
-    ax2.tick_params(axis='x', which='major', labelsize=16)
-    plt.tight_layout()
+    ax2.tick_params(axis='both', which='major', labelsize=16)
+    ax3.tick_params(axis='both', which='major', labelsize=16)
+    ax4.tick_params(axis='both', which='major', labelsize=16)
+    # plt.tight_layout()
     plt.subplots_adjust(bottom=0.17, top=0.85)
 
     savePath = imagePath + "/objective-runtime.pdf"

@@ -76,7 +76,7 @@ public class OtherDevices {
 
             // convergence checker
             assert best != null;
-            int checkPeriod = 300;
+            int checkPeriod = 2000;
 
             Utility U = new Utility((Map<Integer, List<Site[]>>)best.getPhenotype(), device);
             double size = U.getMaxBBoxSize();
@@ -101,7 +101,7 @@ public class OtherDevices {
                     System.out.println("directory " + data_path + " is created");
                 String this_run = converge_data_path + "/" + device + ".txt";
                 try {
-                    FileWriter this_run_fw = new FileWriter(this_run);
+                    FileWriter this_run_fw = new FileWriter(this_run, true);
                     PrintWriter this_run_pw = new PrintWriter(this_run_fw, true);
                     this_run_pw.println(i + " " + wirelength + " " + size);
                 } catch (IOException e) {
@@ -120,7 +120,7 @@ public class OtherDevices {
         int children = 200;
         double crossoverR = 1;
 
-        boolean visual = true;
+        boolean visual = false;
         int iteration = (int)1e8;
 
         EvolutionaryAlgorithmModule evolutionaryAlgorithmModule = new EvolutionaryAlgorithmModule();
@@ -250,6 +250,10 @@ public class OtherDevices {
         for (Integer index : placement.keySet()) {
             List<Site[]> blockConfig = placement.get(index);
             AutoPlacement.place_block(d, index, blockConfig);
+
+//            for (int i=0; i < 3; i++)
+//                for (Site s : blockConfig.get(i))
+//                    System.out.println("index = " + index + " placement=" + s.getName());
         }
         System.out.println("Site-Routing ...");
         d.routeSites();
@@ -289,7 +293,8 @@ public class OtherDevices {
 
     public static void batch_implement() throws IOException {
         //String[] dev_list = new String[]{"xcvu3p", "xcvu5p", "xcvu7p", "xcvu9p", "xcvu27p", "xcvu29p"};
-        String[] dev_list = new String[]{"xcvu3p", "xcvu9p"};
+        //String[] dev_list = new String[]{"xcvu5p","xcvu7p", "xcvu9p","xcvu13p"};
+        String[] dev_list = new String[]{"xcvu9p"};
 
         for (String dev : dev_list) {
             MinRect mr = new MinRect(dev, 18, 8, 2);
@@ -298,6 +303,9 @@ public class OtherDevices {
             part = new Design("name", device).getPartName();
             ymax = mr.getYmax();
             repl = mr.getReplication();
+            blocknum *= repl;
+
+            System.out.println("blocknum = " + blocknum + " ymax = " + ymax + " repl = " + repl);
 
             double[] perf = impl(result + "Transfer/" + dev + ".xdc", 4);
 
@@ -355,12 +363,13 @@ public class OtherDevices {
         }
 
         // generate other devices' placement from transfer
-        transfer("xcvu3p", "xcvu5p");
-        transfer("xcvu3p", "xcvu7p");
+        //transfer("xcvu3p", "xcvu5p");
+        //transfer("xcvu3p", "xcvu7p");
         transfer("xcvu3p", "xcvu9p");
 
-        transfer("xcvu11p", "xcvu27p");
-        transfer("xcvu11p", "xcvu29p");
+        //transfer("xcvu11p", "xcvu27p");
+        //transfer("xcvu11p", "xcvu29p");
+        //transfer("xcvu11p", "xcvu13p");
 
     }
 
@@ -385,10 +394,10 @@ public class OtherDevices {
         else
             System.setProperty("RAPIDWRIGHT_PATH", System.getenv("RAPIDWRIGHT_PATH"));
 
-        //get_all_xdc();
-        //batch_implement();
+        get_all_xdc();
+        batch_implement();
         //checkResources();
-        scratch_time();
+        //scratch_time();
     }
 }
 
