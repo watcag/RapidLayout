@@ -12,6 +12,12 @@ import java.util.*;
 
 public class AutoPlacement {
 
+    // directories
+    private static String root;
+    private static String checkpoint;
+    private static String results;
+
+
     /*
         Function: place_block
         places one convolutional block on device, without site routing
@@ -167,6 +173,10 @@ public class AutoPlacement {
         return replicated;
     }
 
+    /* Function: populateFixed
+       this function takes in placement solution searched in a small region and
+       replicate it a fixed number of times, the number is specified with "num_repl"
+    */
     public static Map<Integer, List<Site[]>> populateFixed(Map<Integer, List<Site[]>> original, String dev, int num_repl){
         Map<Integer, List<Site[]>> replicated = new HashMap<>(original);
 
@@ -197,6 +207,9 @@ public class AutoPlacement {
         return replicated;
     }
 
+    /* @deprecated
+       this is a complete toolflow without SLR replication, takes about 1.5 hours - 2 hours
+    */
     public static void flow_regular() throws IOException {
         // read config
         Properties prop = Tool.getProperties();
@@ -309,6 +322,9 @@ public class AutoPlacement {
 
     }
 
+    /* @deprecated
+        this is a complete toolflow with SLR replication, takes about 1 hours
+    */
     public static void flow_SLR() throws IOException {
         // read config
         Properties prop = Tool.getProperties();
@@ -431,6 +447,9 @@ public class AutoPlacement {
         System.out.println("$$$$ frequency =  " + freq/1e6 + " MHz");
     }
 
+    /* @deprecated
+        this is the debug function for SLR toolflow
+    */
     public static void flow_SLR_debug() throws IOException {
         int blockn = 1;
         int depth = 3;
@@ -487,6 +506,9 @@ public class AutoPlacement {
 
     }
 
+    /* @deprecated
+        this is the tool flow with manual placement
+    */
     public static void flow_manual_placement() throws IOException {
         // read config
         Properties prop = Tool.getProperties();
@@ -544,29 +566,146 @@ public class AutoPlacement {
         Vivado.finishPlacementNRoutePBlock(placed_design, blocknum, result, device, vivado_verbose);
     }
 
+    /*
+        Function: toolflow
+        This is the entire toolflow as a demo. The configurations are loaded
+        from ./config.properties
+    */
+    public static void toolflow() throws IOException {
+
+        // TODO: add transfer learning option
+        // TODO: add GIF option
+        // TODO: fix autopipeline
+
+        // read in configuration
+        Properties prop = Tool.getProperties();
+        String device = prop.getProperty("device");
+        String part = new Design("name", device).getPartName();
+
+        // set up flags
+        final boolean optimization = Boolean.parseBoolean(prop.getProperty("optimization"));
+        final boolean rapidSynth = Boolean.parseBoolean(prop.getProperty("rapidSynth"));
+        final boolean autoPipeline = Boolean.parseBoolean(prop.getProperty("autoPipeline"));
+        final boolean vivado_verbose = Boolean.parseBoolean(prop.getProperty("vivado_verbose"));
+        final boolean visualization = Boolean.parseBoolean(prop.getProperty("opt_visual"));
+        final int depth = Integer.parseInt(prop.getProperty("pipelineDepth"));
+
+        // automatically calc block number, replication times, minimum replicate rectangle
+        MinRect mr = new MinRect(device, 18, 8, 2); // hard block number in 1 computation unit
+        int blocknum = mr.getBlocknum();
+        int replication = mr.getReplication();
+        int x_min = 0;    // these coordinates are RPM coordinates
+        int x_max = 6000; // use all columns
+        int y_min = 0;
+        int y_max = mr.getYmax();
+
+        // optimization parameters
+        String method = prop.getProperty("method");
+        int population = 5;
+        int parents = 20;
+        int children = 50;
+        double crossoverR = 0.98;
+
+        /* --- find placement solution --- */
+        Map<Integer, List<Site[]>> result;
+        String xdc_result = results + "blockNum=" + blocknum + ".xdc";
+        boolean result_exists = new File(xdc_result).exists();
+
+        if (optimization || !result_exists) {
+            // if we want to rerun optimization or there's no existing xdc files
+            FileWriter fw = new FileWriter(xdc_result);
+            PrintWriter pw = new PrintWriter(fw, true);
+            result = find_solution(
+                    method, blocknum, visualization, device,
+                    population, parents, children, crossoverR,
+                    x_min, x_max, y_min, y_max);
+
+            Tool.write_XDC(result, pw);
+            pw.close();
+        } else {
+            // else we use previous results stored in the xdc file
+            result = Tool.getMapFromXDC(xdc_result, device);
+        }
+        System.out.println("[RapidLayout] Found Placement Strategy for " + result.size() + " blocks of convolution units");
+
+        /* --- replicate placement to one SLR --- */
+        result = AutoPlacement.populateFixed(result, device, replication);
+        blocknum *= mr.getReplication();
+        // generate a placement file for one SLR
+        xdc_result = results + "blocknum=" + blocknum + ".xdc";
+        PrintWriter pr = new PrintWriter(new FileWriter(xdc_result), true);
+        Tool.write_XDC(result, pr);
+        pr.close();
+
+        /* --- synthesize one SLR --- */
+        Design d = rapidSynth
+                ? Vivado.synthesize_with_seed(blocknum, device, 4,  part, vivado_verbose)
+                : Vivado.synthesize_vivado(blocknum, part, 0, vivado_verbose);
+        System.out.println("[RapidLayout] One SLR synthesis finished.");
+
+        /* --- placement and site-routing */
+        long start_time = System.nanoTime();
+        System.out.println("[RapidLayout] Placement Start...");
+        for (Integer index : result.keySet()) {
+            List<Site[]> blockConfig = result.get(index);
+            AutoPlacement.place_block(d, index, blockConfig);
+        }
+        System.out.println("[RapidLayout] Site-Routing ...");
+        d.routeSites();
+        long end_time = System.nanoTime();
+
+        System.out.println(">>>-----------------------------------------------<<<");
+        String s = "RapidWright Hard Block Placement time = " + (end_time - start_time) / 1e9
+                + " s, which is " + (end_time - start_time) / 1e9 / 60 + " min";
+        System.out.println(s);
+        System.out.println(">>>-----------------------------------------------<<<");
+
+        /* --- pipeline --- */
+        // TODO autopipeline hasn't work yet
+        AutoPipeline.fixed_pipeline(d, depth, blocknum);
+
+        System.out.println("[RapidLayout] Pipelining finished.");
+
+        /* --- finish SLR routing with Vivado --- */
+        String placedDCP = checkpoint + "blockNum=" + blocknum + "_placed.dcp";
+        if (new File(placedDCP).delete()) System.out.println("[RapidLayout] deleted old placed dcp file.");
+        double freq = Vivado.finishPlacementNRoutePBlock(placedDCP, blocknum, result, device, vivado_verbose);
+        System.out.println("[RapidLayout] clock frequency = " + freq / 1e6 + " MHz");
+
+        /* --- SLR Replication --- */
+        String routedSLR = checkpoint + "blockNum=" + blocknum + "_routed.dcp";
+        start_time = System.nanoTime();
+        Design full_chip_routed = Tool.replicateSLR(routedSLR);
+        end_time = System.nanoTime();
+        System.out.println(">>>-----------------------------------------------");
+        s = "[RapidLayout] SLR Replication time = " + (end_time - start_time) / 1e9
+                + " s, which is " + (end_time - start_time) / 1e9 / 60 + " min";
+        System.out.println(s);
+        System.out.println(">>>-----------------------------------------------");
+        full_chip_routed.writeCheckpoint(checkpoint + "full-chip_" + device + ".dcp");
+        System.out.println("$$$$ frequency =  " + freq/1e6 + " MHz");
+
+    }
+
 
     public static void main(String[] args) throws IOException {
-        // congrats to FPL full paper acceptance!
-
         // set up env variable
         if (System.getenv("RAPIDWRIGHT_PATH") == null)
             System.setProperty("RAPIDWRIGHT_PATH", System.getProperty("user.home") + "/RapidWright");
         else
             System.setProperty("RAPIDWRIGHT_PATH", System.getenv("RAPIDWRIGHT_PATH"));
 
-        File checkpoint = new File(System.getProperty("RAPIDWRIGHT_PATH") + "/checkpoint");
-        File result = new File(System.getProperty("RAPIDWRIGHT_PATH") + "/result");
-        if (checkpoint.mkdirs()) System.out.println("checkpoint folder created");
-        if (result.mkdirs())     System.out.println("result folder created");
+        root = System.getProperty("RAPIDWRIGHT_PATH") + "/";
+        checkpoint = root + "checkpoint/";
+        results = root + "result/";
 
+        File ckpt = new File(checkpoint);
+        File rslt = new File(results);
+        if (ckpt.mkdirs()) System.out.println("checkpoint folder created");
+        if (rslt.mkdirs())     System.out.println("result folder created");
 
         Tool.printParameters();
-        Properties prop = Tool.getProperties();
-        final boolean useSLR = Boolean.parseBoolean(prop.getProperty("SLRCopy"));
-        if (useSLR)
-            flow_SLR();
-        else
-            flow_regular();
+        toolflow();
     }
 
 

@@ -182,20 +182,20 @@ public class Tool {
 
     public static Design replicateConvBlocks(Design d, int replicate_num){
 
-        Design bebes = new Design(d.getName()+"_bebes", d.getPartName());
-        bebes.setAutoIOBuffers(false);
+        Design babies = new Design(d.getName()+"_repl", d.getPartName());
+        babies.setAutoIOBuffers(false);
         // add basic cells to new working library
         for (EDIFCell cell : d.getNetlist().getWorkLibrary().getCells())
-            bebes.getNetlist().getWorkLibrary().addCell(cell);
-        EDIFLibrary hdi = bebes.getNetlist().getHDIPrimitivesLibrary();
+            babies.getNetlist().getWorkLibrary().addCell(cell);
+        EDIFLibrary hdi = babies.getNetlist().getHDIPrimitivesLibrary();
         for (EDIFCell cell : d.getNetlist().getHDIPrimitivesLibrary().getCells()){
             if (!hdi.containsCell(cell))
                 hdi.addCell(cell);
         }
 
-        Net clk = bebes.createNet("clk");
-        Net rst = bebes.createNet("rst");
-        Net ce = bebes.createNet("ce");
+        Net clk = babies.createNet("clk");
+        Net rst = babies.createNet("rst");
+        Net ce = babies.createNet("ce");
 
         // Replicate bebe Cells
         String[] dontConnect = new String[]{"CAS_OUT_ADDR", "CAS_OUT_BWE", "CAS_OUT_DBITERR", "clk", "rst", "ce",
@@ -203,22 +203,16 @@ public class Tool {
         EDIFCell template_old = d.getTopEDIFCell().getCellInst("name[0].dut").getCellType();
 
         for (int i = 0; i < replicate_num; i++){
-            //EDIFCell template = cloneEDIFCell(template_old, "_"+i);
-            EDIFCell template = template_old;
             // added on 2020.03.31, trying to rename parent edif cellname to avoid naming conflict
-            template.rename(  "dsp_conv_top_" + i);
+            // template_old.rename(  "dsp_conv_top_" + i);
 
-            Cell new_bebe = bebes.createCell("name["+i+"].dut", template);
+            Cell new_bebe = babies.createCell("name["+i+"].dut", template_old);
             EDIFCellInst cellInst = new_bebe.getEDIFCellInst();
-            cellInst.setCellType(template);
+            cellInst.setCellType(template_old);
 
-            EDIFLibrary library = bebes.getNetlist().getWorkLibrary();
-            library.addCell(template);
+            EDIFLibrary library = babies.getNetlist().getWorkLibrary();
+            library.addCell(template_old);
             //Map<String, EDIFCell> cellMap = library.getCellMap();
-
-
-            System.out.println(cellInst.getCellType().getName()); /*trying deep copy*/
-
 
             for(EDIFPort port : cellInst.getCellPorts()){
                 String portName = port.isBus() ? port.getBusName() : port.getName();
@@ -227,11 +221,11 @@ public class Tool {
                 String ext_name = port.isBus() ?
                         port.getBusName() + "[" + i + "][" + (port.getWidth()-1) + ":0]"
                         : port.getBusName() + "_"+ i +"_";
-                EDIFPort top_port = bebes.getNetlist().getTopCell().createPort(ext_name, port.getDirection(), port.getWidth());
+                EDIFPort top_port = babies.getNetlist().getTopCell().createPort(ext_name, port.getDirection(), port.getWidth());
 
                 for (int index = 0 ; index < top_port.getWidth(); index++){
                     String netName = port.isBus() ? port.getBusName() + "[" + i + "]" + "[" + index + "]" :  port.getBusName() + "_" + i + "_";
-                    Net net = bebes.createNet(netName);
+                    Net net = babies.createNet(netName);
                     if (port.isBus()){
                         net.getLogicalNet().createPortInst(top_port, index);
                         net.getLogicalNet().createPortInst(port, index, cellInst);
@@ -248,15 +242,14 @@ public class Tool {
             ce.getLogicalNet().createPortInst("ce", new_bebe);
         }
 
-        EDIFPort clkPort = bebes.getTopEDIFCell().createPort("clk", EDIFDirection.INPUT, 1);
-        EDIFPort rstPort = bebes.getTopEDIFCell().createPort("rst", EDIFDirection.INPUT, 1);
-        EDIFPort cePort = bebes.getTopEDIFCell().createPort("ce", EDIFDirection.INPUT, 1);
+        EDIFPort clkPort = babies.getTopEDIFCell().createPort("clk", EDIFDirection.INPUT, 1);
+        EDIFPort rstPort = babies.getTopEDIFCell().createPort("rst", EDIFDirection.INPUT, 1);
+        EDIFPort cePort = babies.getTopEDIFCell().createPort("ce", EDIFDirection.INPUT, 1);
         clk.getLogicalNet().createPortInst(clkPort);
         rst.getLogicalNet().createPortInst(rstPort);
         ce.getLogicalNet().createPortInst(cePort);
 
-        return bebes;
-
+        return babies;
     }
 
 
@@ -384,5 +377,14 @@ public class Tool {
         }
         out.append('$');
         return out.toString();
+    }
+
+    /* debug computation unit replication */
+    public static void main(String[] args) {
+        String one_unit_path = System.getenv("RAPIDWRIGHT_PATH") + "/checkpoint/vu11p_seed_0.dcp";
+        String output_path = System.getenv("RAPIDWRIGHT_PATH") + "/checkpoint/replicated.dcp";
+        Design one_unit = Design.readCheckpoint(one_unit_path);
+        Design babies = Tool.replicateConvBlocks(one_unit, 2);
+        babies.writeCheckpoint(output_path);
     }
 }

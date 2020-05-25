@@ -20,10 +20,10 @@ public class Vivado {
         long start_time = System.nanoTime();
 
         // synthesize seed first, if seed is not available
-        String seed_path = checkpoint + "seed" + depth + ".dcp";
+        String seed_path = checkpoint + device + "_seed_" + depth;
         File seed_file = new File(seed_path);
         if (!seed_file.exists())
-            synthesize_seed(part, depth, checkpoint + "seed" + depth, verbose);
+            synthesize_seed(part, depth, seed_path, verbose);
         else{
             Design d = Design.readCheckpoint(seed_path);
             Design temp_d = new Design("temp", device);
@@ -33,7 +33,7 @@ public class Vivado {
             }
         }
 
-        Design seed = Design.readCheckpoint(seed_path);
+        Design seed = Design.readCheckpoint(seed_path + ".dcp");
 
         // Replicate
         Design design = Tool.replicateConvBlocks(seed, block_num);
@@ -46,7 +46,7 @@ public class Vivado {
 
         //Design new_design = legalize_process(design);
 
-        String synthDCP = checkpoint + "blockNum="+block_num+"_synth.dcp";
+        String synthDCP = checkpoint + "blockNum=" + block_num + "_synth.dcp";
         design.writeCheckpoint(synthDCP);
 
         return design;
