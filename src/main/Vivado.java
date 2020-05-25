@@ -21,11 +21,11 @@ public class Vivado {
 
         // synthesize seed first, if seed is not available
         String seed_path = checkpoint + device + "_seed_" + depth;
-        File seed_file = new File(seed_path);
+        File seed_file = new File(seed_path + ".dcp");
         if (!seed_file.exists())
             synthesize_seed(part, depth, seed_path, verbose);
         else{
-            Design d = Design.readCheckpoint(seed_path);
+            Design d = Design.readCheckpoint(seed_path + ".dcp");
             Design temp_d = new Design("temp", device);
             if (!d.getPartName().equals(temp_d.getPartName())) { // if the seed is not compatible
                 System.out.println(">>>>WARNING<<<<  -- Seed's Device Part Name is different from requested, redo seed synthesis......");

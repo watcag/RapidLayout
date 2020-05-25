@@ -200,27 +200,22 @@ public class Tool {
         // Replicate bebe Cells
         String[] dontConnect = new String[]{"CAS_OUT_ADDR", "CAS_OUT_BWE", "CAS_OUT_DBITERR", "clk", "rst", "ce",
                 "CAS_OUT_DIN", "CAS_OUT_DOUT", "CAS_OUT_EN", "CAS_OUT_RDACCESS","CAS_OUT_RDB_WR", "CAS_OUT_SBITERR"};
-        EDIFCell template_old = d.getTopEDIFCell().getCellInst("name[0].dut").getCellType();
+        EDIFCell template = d.getTopEDIFCell().getCellInst("name[0].dut").getCellType();
 
         for (int i = 0; i < replicate_num; i++){
-            // added on 2020.03.31, trying to rename parent edif cellname to avoid naming conflict
-            // template_old.rename(  "dsp_conv_top_" + i);
 
-            Cell new_bebe = babies.createCell("name["+i+"].dut", template_old);
-            EDIFCellInst cellInst = new_bebe.getEDIFCellInst();
-            cellInst.setCellType(template_old);
+            Cell new_baby = babies.createCell("name["+i+"].dut", template);
 
             EDIFLibrary library = babies.getNetlist().getWorkLibrary();
-            library.addCell(template_old);
-            //Map<String, EDIFCell> cellMap = library.getCellMap();
+            library.addCell(template);
 
-            for(EDIFPort port : cellInst.getCellPorts()){
+            for(EDIFPort port : new_baby.getEDIFCellInst().getCellPorts()){
                 String portName = port.isBus() ? port.getBusName() : port.getName();
-                if (Arrays.stream(dontConnect).anyMatch(str -> portName.contains(str)))
+                if (Arrays.stream(dontConnect).anyMatch(portName::contains))
                     continue;
-                String ext_name = port.isBus() ?
-                        port.getBusName() + "[" + i + "][" + (port.getWidth()-1) + ":0]"
-                        : port.getBusName() + "_"+ i +"_";
+                String ext_name = port.isBus()
+                        ? port.getBusName() + "[" + i + "][" + (port.getWidth()-1) + ":0]"
+                        : port.getName() + "_"+ i +"_";
                 EDIFPort top_port = babies.getNetlist().getTopCell().createPort(ext_name, port.getDirection(), port.getWidth());
 
                 for (int index = 0 ; index < top_port.getWidth(); index++){
@@ -228,18 +223,18 @@ public class Tool {
                     Net net = babies.createNet(netName);
                     if (port.isBus()){
                         net.getLogicalNet().createPortInst(top_port, index);
-                        net.getLogicalNet().createPortInst(port, index, cellInst);
+                        net.getLogicalNet().createPortInst(port, index, new_baby.getEDIFCellInst());
                     } else {
                         net.getLogicalNet().createPortInst(top_port);
-                        net.getLogicalNet().createPortInst(port, cellInst);
+                        net.getLogicalNet().createPortInst(port, new_baby.getEDIFCellInst());
                     }
                 }
             }
 
             // connect global nets
-            clk.getLogicalNet().createPortInst("clk", new_bebe);
-            rst.getLogicalNet().createPortInst("rst",new_bebe);
-            ce.getLogicalNet().createPortInst("ce", new_bebe);
+            clk.getLogicalNet().createPortInst("clk", new_baby);
+            rst.getLogicalNet().createPortInst("rst",new_baby);
+            ce.getLogicalNet().createPortInst("ce", new_baby);
         }
 
         EDIFPort clkPort = babies.getTopEDIFCell().createPort("clk", EDIFDirection.INPUT, 1);

@@ -639,7 +639,7 @@ public class AutoPlacement {
 
         /* --- synthesize one SLR --- */
         Design d = rapidSynth
-                ? Vivado.synthesize_with_seed(blocknum, device, 4,  part, vivado_verbose)
+                ? Vivado.synthesize_with_seed(blocknum, device, 0,  part, vivado_verbose)
                 : Vivado.synthesize_vivado(blocknum, part, 0, vivado_verbose);
         System.out.println("[RapidLayout] One SLR synthesis finished.");
 
@@ -669,6 +669,7 @@ public class AutoPlacement {
         /* --- finish SLR routing with Vivado --- */
         String placedDCP = checkpoint + "blockNum=" + blocknum + "_placed.dcp";
         if (new File(placedDCP).delete()) System.out.println("[RapidLayout] deleted old placed dcp file.");
+        d.writeCheckpoint(placedDCP);
         double freq = Vivado.finishPlacementNRoutePBlock(placedDCP, blocknum, result, device, vivado_verbose);
         System.out.println("[RapidLayout] clock frequency = " + freq / 1e6 + " MHz");
 
