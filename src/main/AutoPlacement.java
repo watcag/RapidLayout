@@ -546,6 +546,8 @@ public class AutoPlacement {
 
 
     public static void main(String[] args) throws IOException {
+        // congrats to FPL full paper acceptance!
+
         // set up env variable
         if (System.getenv("RAPIDWRIGHT_PATH") == null)
             System.setProperty("RAPIDWRIGHT_PATH", System.getProperty("user.home") + "/RapidWright");
