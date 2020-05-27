@@ -1,30 +1,10 @@
 package Experiment;
 
-import Utils.Utility;
-import com.xilinx.rapidwright.device.Site;
-import main.AutoPlacement;
-import main.MinRect;
-import main.Tool;
+import Experiment.optimize.*;
 
 import java.io.*;
-import java.util.*;
-
-import static main.Tool.changeProperty;
 
 public class CompareMethods {
-
-    private static String device;
-    private static String root;
-    private static String result;
-
-    /* Function: collect specs data
-       Evaluate the performance of **one** optimization method
-       and save the result metrics
-       output file: ./result/<method>_perf.txt
-    */
-    public static void collect_specs_data(String method) throws IOException {
-
-    }
 
     public static void main(String[] args) throws IOException {
         // set up env variable
@@ -33,15 +13,18 @@ public class CompareMethods {
         else
             System.setProperty("RAPIDWRIGHT_PATH", System.getenv("RAPIDWRIGHT_PATH"));
 
-        root = System.getProperty("RAPIDWRIGHT_PATH") + "/";
-        result = root + "result/";
+        String device = "vu11p";
 
-        device = "vu11p";
+        int mode = 0;
+        final boolean visual = false;
 
-        String[] methods = {"CMA", "EA", "EA-reduced", "SA"};
-        for (String method : methods){
-            collect_specs_data(method);
-        }
+        NSGA.call(device, visual, mode);
+        NSGAR.call(device, visual, mode);
+        CMAES.call(device, mode);
+        SA.call(device, visual, mode);
+        GA.call(device, visual, mode);
+        UTPlaceF.main(new String[0]);
+        VPR.main(new String[0]);
 
 //        String script =  root + "/src/visualize/compare.py";
 //        String dataPath = root + "/result";

@@ -6,6 +6,7 @@ import com.google.inject.Inject;
 import com.google.inject.Module;
 import com.xilinx.rapidwright.device.Site;
 import main.MinRect;
+import main.Tool;
 import org.opt4j.core.Individual;
 import org.opt4j.core.Objective;
 import org.opt4j.core.Objectives;
@@ -27,6 +28,8 @@ public class SA {
 
     private static boolean visual;
     private static String device;
+    private static boolean collect_gif_data;
+    private static boolean collect_converge_data;
 
     static class CoolingScheduleLinear implements CoolingSchedule {
         @Override
@@ -52,6 +55,7 @@ public class SA {
         }
 
         @Override
+        @SuppressWarnings({"unchecked"})
         public void iterationComplete(int i) {
 
             // select best individual
@@ -94,6 +98,45 @@ public class SA {
             if (size >= old_size - 10 && wirelength >= old_wirelength - 1e5 && i > 2 * checkPeriod && i % checkPeriod == checkPeriod - 1) {
                 System.out.println("Terminated at iteration: " + i);
                 control.doTerminate();
+            }
+
+            /* data collection */
+            if (collect_gif_data) {
+                String path = System.getProperty("RAPIDWRIGHT_PATH") + "/result/SA_gif_data/";
+                File file = new File(path);
+                if (file.mkdirs())
+                    System.out.println("directory " + path + " is created");
+                if (i>30000) return; // we only collect first 30k iterations
+                if (i % 10 == 0) {
+                    String file_name = path + i + ".xdc";
+                    try {
+                        PrintWriter pw = new PrintWriter(new FileWriter(file_name), true);
+                        Tool.write_XDC((Map<Integer, List<Site[]>>) best.getPhenotype(), pw);
+                        pw.close();
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    }
+                }
+            }
+
+            if (collect_converge_data) {
+                String converge_data_path = System.getenv("RAPIDWRIGHT_PATH") + "/result/SA_convergence_data";
+                File data_path = new File(converge_data_path);
+                if (data_path.mkdirs())
+                    System.out.println("directory " + data_path + " is created");
+                if (i>30000) return;
+                String this_run = converge_data_path + "/run_at_" + System.currentTimeMillis() + ".txt";
+                Map<Integer, List<Site[]>> placement = (Map<Integer, List<Site[]>>)best.getPhenotype();
+                Utility U = new Utility(placement, device);
+                double wl = U.getUnifiedWireLength();
+                double sz = U.getMaxBBoxSize();
+                try {
+                    FileWriter this_run_fw = new FileWriter(this_run, true);
+                    PrintWriter this_run_pw = new PrintWriter(this_run_fw, true);
+                    this_run_pw.println(i + " " + wl + " " + sz);
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
             }
 
         }
@@ -226,7 +269,11 @@ public class SA {
 
     }
 
-    public static void call(String dev, boolean visualize) throws IOException {
+    /* mode = 0: does not write out convergence data or gif data
+       mode = 1: write out convergence data
+       mode = 2: write out gif data
+    */
+    public static void call(String dev, boolean visualize, int mode) throws IOException {
         // set up env variable
         if (System.getenv("RAPIDWRIGHT_PATH") == null)
             System.setProperty("RAPIDWRIGHT_PATH", System.getProperty("user.home") + "/RapidWright");
@@ -234,6 +281,20 @@ public class SA {
             System.setProperty("RAPIDWRIGHT_PATH", System.getenv("RAPIDWRIGHT_PATH"));
         device = dev;
         visual = visualize;
+        switch (mode){
+            case 1:
+                collect_converge_data = true;
+                collect_gif_data = false;
+                break;
+            case 2:
+                collect_converge_data = false;
+                collect_gif_data = true;
+                break;
+            default:
+                collect_converge_data = false;
+                collect_gif_data = false;
+                break;
+        }
         collect_data();
     }
 
@@ -246,7 +307,8 @@ public class SA {
 
         visual = true;
         device = "vu11p";
-
+        collect_converge_data = false;
+        collect_gif_data = false;
         collect_data();
     }
 }

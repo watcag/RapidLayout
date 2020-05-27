@@ -48,7 +48,7 @@ public class StartOptimization {
         }
 
         @Override
-        @SuppressWarnings({"unchecked", "rawtypes"})
+        @SuppressWarnings({"unchecked"})
         public void iterationComplete(int i) {
             // this function is called every time a iteration completes
 

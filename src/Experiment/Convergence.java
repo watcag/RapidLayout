@@ -1,5 +1,6 @@
 package Experiment;
 
+import Experiment.optimize.*;
 import main.Tool;
 
 import java.io.*;
@@ -15,12 +16,16 @@ public class Convergence {
         else
             System.setProperty("RAPIDWRIGHT_PATH", System.getenv("RAPIDWRIGHT_PATH"));
 
-        String root = System.getenv("RAPIDWRIGHT_PATH");
-        String saveDir = root + "/visual";
+        String device = "vu11p";
 
-        String script = root + "/src/visualize/converge.py";
+        int mode = 1;
+        final boolean visual = false;
 
-        Tool.execute_cmd("python3 " + script + " " + saveDir);
+        NSGA.call(device, visual, mode);
+        NSGAR.call(device, visual, mode);
+        CMAES.call(device, mode);
+        SA.call(device, visual, mode);
+        GA.call(device, visual, mode);
     }
 
 
