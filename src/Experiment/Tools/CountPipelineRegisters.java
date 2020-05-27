@@ -1,4 +1,4 @@
-package Experiment;
+package Experiment.Tools;
 
 import com.xilinx.rapidwright.design.Design;
 import com.xilinx.rapidwright.edif.EDIFCell;

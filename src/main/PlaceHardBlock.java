@@ -43,7 +43,7 @@ public class PlaceHardBlock {
 
             if (belInst == null){
                 d.createAndPlaceCell(dsp48Inst.getCellType(), dsp48InstName + EDIFTools.EDIF_HIER_SEP + instName, Unisim.valueOf(elem.getName()), origin, elem);
-                System.out.println("non-existing DSP children cells at " + dsp48InstName);
+                System.out.println("non-existing DSP children cells at " + dsp48InstName + " : " + instName);
             }
             else{
                 // Since the logical cell instance already exists, we have to separate APIs

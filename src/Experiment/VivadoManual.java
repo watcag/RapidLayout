@@ -10,14 +10,13 @@ import java.io.PrintWriter;
 
 import java.util.Scanner;
 
-public class ManualPlacement {
+public class VivadoManual {
 
     public static void manual_placement_timing(String xdc_path, int depth, String device) throws IOException {
         System.out.println("--- Vivado manual placement ---");
         String part = new Design("name", device).getPartName();
         // automatically decide number of blocks
-        MinRect mr = new MinRect(device, 18, 8, 2);
-        int block_num = mr.getBlocknum();
+        int block_num = 480;
         String tcl_path = System.getProperty("RAPIDWRIGHT_PATH") + "/tcl/manual_" + depth + ".tcl";
         String output_path = System.getProperty("RAPIDWRIGHT_PATH") + "/checkpoint/manual_pipeline_" + depth + ".dcp";
         String verilog_path = System.getProperty("RAPIDWRIGHT_PATH") + "/src/verilog/";
@@ -31,7 +30,7 @@ public class ManualPlacement {
             printWriter.println("synth_design -mode out_of_context -part " + part + " -top dsp_conv_chip;");
             printWriter.println("create_clock -period 1.000 -waveform {0.000 0.500} [get_nets clk];");
             printWriter.println("read_xdc " + xdc_path);
-            printWriter.println("place_design; route_design; report_timing;");
+            printWriter.println("opt_design; place_design; phys_opt_design; route_design; phys_opt_design; report_timing;");
             printWriter.println("write_checkpoint -force -file " + output_path);
             printWriter.println("exit");
             printWriter.close();
@@ -73,11 +72,11 @@ public class ManualPlacement {
         do {
             System.out.println("Please input pipeline depth: (e.g. 1)");
             while (!input.hasNextInt()) {
-                System.out.println("That's not a number!");
+                System.out.println("between 1 to 4");
                 input.next(); // this is important!
             }
             depth = input.nextInt();
-        } while (depth <0 || depth > 3);
+        } while (depth <0 || depth > 4);
 
         // default xdc path
         String xdc = System.getenv("RAPIDWRIGHT_PATH") + "/src/verilog/dsp_conv_chip.xdc";

@@ -1,4 +1,4 @@
-package Experiment;
+package Experiment.optimize;
 
 import Utils.Utility;
 import com.xilinx.rapidwright.design.Design;

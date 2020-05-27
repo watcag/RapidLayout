@@ -294,7 +294,7 @@ It will run optimization for 100 times, collect model performace data and also t
 To plot convergence for each method, we have to run `java Experiment.CompareMethods` first to collect convergence data. After that, just run:
 
 ```bash
-$ java Experiment.ConvergencePlot 2>&1 | tee log.txt
+$ java Experiment.Convergence 2>&1 | tee log.txt
 ```
 
 The convergence plot will be save in the `visual` directory.

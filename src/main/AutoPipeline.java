@@ -315,7 +315,7 @@ public class AutoPipeline {
 
 
                     int nreg = get_depth(100);
-                    insert_reg(d, srcEDIFCell, srcPortInst, dstEDIFCell, dstPortInst, name, nreg, "pipeline_" + i + "_" + pin);
+                    insert_reg_2(d, srcEDIFCell, srcPortInst, dstEDIFCell, dstPortInst, name, nreg, "pipeline_" + i + "_" + pin);
                     System.out.println("pipeline depth = " + nreg);
                 }
             }
