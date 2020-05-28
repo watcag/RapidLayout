@@ -319,17 +319,22 @@ public class Tool {
         System.out.println("==================Runtime Parameters====================");
         System.out.println("Using Device: " + prop.getProperty("device"));
         System.out.println("Hard Block Optimization Algorithm: " + prop.getProperty("method"));
-        System.out.println("Optimization Process Visualization: " + prop.getProperty("opt_visual"));
-        System.out.println("Draw Final Placement Result with Matplotlib? " + prop.getProperty("matplotlib_visual"));
         System.out.println("Proceed Optimization? " + prop.getProperty("optimization"));
-        System.out.println("Use RapidWright Synthesis (RapidSynth)? " + prop.getProperty("rapidSynth"));
+        boolean opt = Boolean.parseBoolean(prop.getProperty("optimization"));
+        if (!opt){
+            System.out.println("Use previous placement file: " + prop.getProperty("placement"));
+        }
+        System.out.println("Use RapidWright for fast synthesis (RapidSynth)? " + prop.getProperty("rapidSynth"));
         System.out.println("Use SLR Replication? " + prop.getProperty("SLRCopy"));
         System.out.println("Use automatic pipeline? " + prop.getProperty("autoPipeline"));
         System.out.println("Pipeline Depth: " + prop.getProperty("pipelineDepth") + " (if auto-pipeline is enabled, this will be ignored)");
         System.out.println("Vivado verbose: " + prop.getProperty("vivado_verbose"));
+        System.out.println("Generate placement GIF: " + prop.getProperty("generate_gif"));
+        System.out.println("Enable transfer learning: " + prop.getProperty("transfer"));
+        boolean transfer = Boolean.parseBoolean(prop.getProperty("transfer"));
+        if (transfer)
+            System.out.println("Transfer from placement file: " + prop.getProperty("initial_xdc"));
 
-        System.out.println("Collect data to make evolution gif? " + prop.getProperty("collect_gif_data"));
-        System.out.println("Collect convergence data? " + prop.getProperty("collect_converge_data"));
         System.out.println("========================================================");
 
     }

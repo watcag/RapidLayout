@@ -161,20 +161,15 @@ public class cmaes {
         int checkFeasibleCount = 0;
         boolean generateStatistics = true;
 
-        /* define two convergence checkers for data collection */
-        String cvg_data_dir = System.getProperty("RAPIDWRIGHT_PATH") + "/result/CMA_convergence_data/";
-        File cvg_dir = new File(cvg_data_dir);
-        if (cvg_dir.mkdirs())
-            System.out.println("created dir " + cvg_dir);
-        else
-            System.out.println("directory " + cvg_dir + " exists");
-
-
         // Convergence checker: GIF data, called after each iteration
+        Properties prop = Tool.getProperties();
+        boolean generate_gif = Boolean.parseBoolean(prop.getProperty("generate_gif"));
         String gif_data_dir = System.getProperty("RAPIDWRIGHT_PATH") + "/result/demo_gif_data/";
-        File gif_dir = new File(gif_data_dir);
-        if (gif_dir.mkdirs())
-            System.out.println("created dir " + gif_dir);
+        if (generate_gif) {
+            File gif_dir = new File(gif_data_dir);
+            if (gif_dir.mkdirs())
+                System.out.println("created dir " + gif_dir);
+        }
         ConvergenceChecker<PointValuePair> checker_for_gif_data = (i, previous, current) -> {
 
             Map<SiteTypeEnum, List<List<Site>>> allAvailSites = Opt.PlaceCreator.getAvailableSites(dev, x_min, x_max, y_min, y_max);
@@ -199,8 +194,6 @@ public class cmaes {
         };
 
         /* data collection options */
-        Properties prop = Tool.getProperties();
-        boolean generate_gif = Boolean.parseBoolean(prop.getProperty("generate_gif"));
 
         CMAESOptimizer opt;
 

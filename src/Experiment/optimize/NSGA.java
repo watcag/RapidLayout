@@ -33,6 +33,7 @@ public class NSGA {
     private static String device;
     private static boolean collect_gif_data;
     private static boolean collect_converge_data;
+    private static int iteration;
 
     public static class monitor implements OptimizerIterationListener {
         Archive archive;
@@ -249,11 +250,10 @@ public class NSGA {
     */
     public static void collect_data() throws IOException {
         String perfFile = System.getenv("RAPIDWRIGHT_PATH") + "/result/EA_perf.txt";
-        int times = 50;
 
         PrintWriter pr = new PrintWriter(new FileWriter(perfFile, true), true);
 
-        for (int i=0; i < times; i++) {
+        for (int i=0; i < iteration; i++) {
 
             long start = System.currentTimeMillis();
             double[] perfs = run();
@@ -275,7 +275,7 @@ public class NSGA {
        mode = 1: write out convergence data
        mode = 2: write out gif data
     */
-    public static void call(String dev, boolean visualize, int mode) throws IOException {
+    public static void call(String dev, boolean visualize, int mode, int it) throws IOException {
         // set up env variable
         if (System.getenv("RAPIDWRIGHT_PATH") == null)
             System.setProperty("RAPIDWRIGHT_PATH", System.getProperty("user.home") + "/RapidWright");
@@ -283,6 +283,7 @@ public class NSGA {
             System.setProperty("RAPIDWRIGHT_PATH", System.getenv("RAPIDWRIGHT_PATH"));
         device = dev;
         visual = visualize;
+        iteration = it;
         switch (mode){
             case 1:
                 collect_converge_data = true;

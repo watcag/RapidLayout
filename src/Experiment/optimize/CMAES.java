@@ -31,6 +31,7 @@ public class CMAES {
     private static final SiteTypeEnum DSP_MAP = SiteTypeEnum.SLICEL;
     private static final SiteTypeEnum BRAM_MAP = SiteTypeEnum.BUFG;
     private static final SiteTypeEnum URAM_MAP = SiteTypeEnum.LAGUNA;
+    private static int iteration;
 
     private static boolean collect_gif_data;
     private static boolean collect_converge_data;
@@ -52,11 +53,13 @@ public class CMAES {
 
         /* define two convergence checkers for data collection */
         String cvg_data_dir = System.getProperty("RAPIDWRIGHT_PATH") + "/result/CMA_convergence_data/";
-        File cvg_dir = new File(cvg_data_dir);
-        if (cvg_dir.mkdirs())
-            System.out.println("created dir " + cvg_dir);
-        else
-            System.out.println("directory " + cvg_dir + " exists");
+        if (collect_converge_data) {
+            File cvg_dir = new File(cvg_data_dir);
+            if (cvg_dir.mkdirs())
+                System.out.println("created dir " + cvg_dir);
+            else
+                System.out.println("directory " + cvg_dir + " exists");
+        }
         String converge_data = cvg_data_dir + "run_at_" + System.currentTimeMillis() + ".txt";
 
         /* convergence checker: called after each iteration */
@@ -88,10 +91,12 @@ public class CMAES {
         /* Convergence checker: GIF data, called after each iteration */
         String gif_data_dir = System.getProperty("RAPIDWRIGHT_PATH") + "/result/CMA_gif_data/";
         File gif_dir = new File(gif_data_dir);
-        if (gif_dir.mkdirs())
-            System.out.println("created dir " + gif_dir);
-        else
-            System.out.println("directory " + gif_dir + " exists");
+        if (collect_gif_data) {
+            if (gif_dir.mkdirs())
+                System.out.println("created dir " + gif_dir);
+            else
+                System.out.println("directory " + gif_dir + " exists");
+        }
         ConvergenceChecker<PointValuePair> checker_for_gif_data = (i, previous, current) -> {
 
 
@@ -147,15 +152,6 @@ public class CMAES {
         System.out.println("size = " + size);
         System.out.println("wirelength = " + wireLength);
 
-        List<Double> fitnessHistory = opt.getStatisticsFitnessHistory();
-        System.out.println("----------------------");
-        System.out.println("cma search steps = " + fitnessHistory.size());
-        String xdc = System.getProperty("RAPIDWRIGHT_PATH") + "/result/blockNum=" + block_num + ".xdc";
-        FileWriter fw = new FileWriter(xdc);
-        PrintWriter printWriter = new PrintWriter(fw, true);
-        Tool.write_XDC(solution, printWriter);
-        printWriter.close();
-
         return solution;
     }
 
@@ -178,11 +174,10 @@ public class CMAES {
 
     public static void collect_data() throws IOException {
         String perfFile = System.getenv("RAPIDWRIGHT_PATH") + "/result/CMA_perf.txt";
-        int times = 50;
 
         PrintWriter pr = new PrintWriter(new FileWriter(perfFile, true), true);
 
-        for (int i=0; i < times; i++) {
+        for (int i=0; i < iteration; i++) {
 
             long start = System.currentTimeMillis();
             double[] perfs = run();
@@ -204,12 +199,14 @@ public class CMAES {
        mode = 1: write out convergence data
        mode = 2: write out gif data
     */
-    public static void call(String dev, int mode) throws IOException {
+    public static void call(String dev, int mode, int it) throws IOException {
         // set up env variable
         if (System.getenv("RAPIDWRIGHT_PATH") == null)
             System.setProperty("RAPIDWRIGHT_PATH", System.getProperty("user.home") + "/RapidWright");
         else
             System.setProperty("RAPIDWRIGHT_PATH", System.getenv("RAPIDWRIGHT_PATH"));
+
+        iteration = it;
 
         switch (mode){
             case 1:

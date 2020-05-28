@@ -21,11 +21,13 @@ public class CompareMethods {
         int mode = 0;
         final boolean visual = false;
 
-        NSGA.call(device, visual, mode);
-        NSGAR.call(device, visual, mode);
-        CMAES.call(device, mode);
-        SA.call(device, visual, mode);
-        GA.call(device, visual, mode);
+        int iteration = 1;
+
+        NSGA.call(device, visual, mode, iteration);
+        NSGAR.call(device, visual, mode, iteration);
+        CMAES.call(device, mode, iteration);
+        SA.call(device, visual, mode, iteration);
+        GA.call(device, visual, mode, iteration);
         UTPlaceF.main(new String[0]);
         VPR.main(new String[0]);
 

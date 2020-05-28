@@ -24,11 +24,12 @@ public class GenerateGIF {
 
         int mode = 2;
         final boolean visual = false;
+        int iteration = 1;
 
-        NSGA.call(device, visual, mode);
-        NSGAR.call(device, visual, mode);
-        CMAES.call(device, mode);
-        SA.call(device, visual, mode);
-        GA.call(device, visual, mode);
+        NSGA.call(device, visual, mode, iteration);
+        NSGAR.call(device, visual, mode, iteration);
+        CMAES.call(device, mode, iteration);
+        SA.call(device, visual, mode, iteration);
+        GA.call(device, visual, mode, iteration);
     }
 }
