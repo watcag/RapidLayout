@@ -35,6 +35,7 @@ public class NSGA {
     private static boolean collect_converge_data;
     private static boolean for_transfer_learning = false;
     private static int iteration;
+    private static boolean absolute_checker = true;
 
     public static class monitor implements OptimizerIterationListener {
         Archive archive;
@@ -85,14 +86,18 @@ public class NSGA {
             double size = objectives.get(new Objective("Spread")).getDouble();
             double wirelength = objectives.get(new Objective("unifWireLength")).getDouble();
 
-//            if (old_size - size <= 10 && i > 2 * checkPeriod && i % checkPeriod == checkPeriod - 1) {
-//                System.out.println("Terminated at iteration: " + i);
-//                control.doTerminate();
-//            }
-            if (size < 1200 || i > 40000) {
-                System.out.println("Terminated at iteration: " + i);
-                control.doTerminate();
-            }
+            /* select checker */
+            if (absolute_checker)
+                if (size < 1200 || i > 40000) {
+                    System.out.println("Terminated at iteration: " + i);
+                    control.doTerminate();
+                }
+            else
+                if (old_size - size <= 10 && i > 2 * checkPeriod && i % checkPeriod == checkPeriod - 1) {
+                    System.out.println("Terminated at iteration: " + i);
+                    control.doTerminate();
+                }
+
 
             /* data collection */
             if (collect_gif_data) {
@@ -314,7 +319,7 @@ public class NSGA {
 
     /* this function is designed for transfer learning, where we want to save the result placement xdc
     * file to a particular directory */
-    public static double[] call(String dev, boolean visualize) throws IOException {
+    public static double[] call(String dev, boolean visualize, boolean use_abs_checker) throws IOException {
         // set up env variable
         if (System.getenv("RAPIDWRIGHT_PATH") == null)
             System.setProperty("RAPIDWRIGHT_PATH", System.getProperty("user.home") + "/RapidWright");
@@ -323,6 +328,7 @@ public class NSGA {
         device = dev;
         visual = visualize;
         for_transfer_learning = true;
+        absolute_checker = use_abs_checker;
         return run();
     }
 

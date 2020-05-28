@@ -17,8 +17,8 @@ public class TransferLearning {
     public static void gen_seed_placement(String dev, boolean visualize) throws IOException {
 
         Tool.changeProperty("transfer", "false");
-
-        NSGA.call(dev, visualize);
+        // use absolute checker
+        NSGA.call(dev, visualize, true);
     }
 
 
@@ -33,7 +33,8 @@ public class TransferLearning {
 
         long start = System.nanoTime();
 
-        NSGA.call(targetDevice, visualize);
+        // do not use absolute checker
+        NSGA.call(targetDevice, visualize, false);
 
         long end = System.nanoTime();
 
@@ -99,7 +100,7 @@ public class TransferLearning {
     public static void scratch_time(boolean visualize) throws IOException {
 
         // seed devices
-        String[] seed_devs = new String[]{"xcvu3p", "xcvu7p", "xcvu5p", "xcvu9p", "xcvu13p"};
+        String[] seed_devs = new String[]{"xcvu7p", "xcvu5p", "xcvu9p", "xcvu13p"};
         for (String seed_dev : seed_devs) {
             long start = System.nanoTime();
             gen_seed_placement(seed_dev, visualize);
