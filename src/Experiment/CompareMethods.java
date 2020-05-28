@@ -1,6 +1,7 @@
 package Experiment;
 
 import Experiment.optimize.*;
+import main.Tool;
 
 import java.io.*;
 
@@ -14,6 +15,8 @@ public class CompareMethods {
             System.setProperty("RAPIDWRIGHT_PATH", System.getenv("RAPIDWRIGHT_PATH"));
 
         String device = "vu11p";
+
+        Tool.changeProperty("transfer", "false");
 
         int mode = 0;
         final boolean visual = false;

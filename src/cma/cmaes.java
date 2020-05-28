@@ -168,99 +168,49 @@ public class cmaes {
             System.out.println("created dir " + cvg_dir);
         else
             System.out.println("directory " + cvg_dir + " exists");
-        String converge_data = cvg_data_dir + "run_at_" + System.currentTimeMillis() + ".txt";
-
-        // convergence checker: called after each iteration
-        ConvergenceChecker<PointValuePair> checker_for_convergence_data = new ConvergenceChecker<PointValuePair>() {
-            @Override
-            public boolean converged(int i, PointValuePair previous, PointValuePair current) {
-                Map<SiteTypeEnum, List<List<Site>>> allAvailSites = Opt.PlaceCreator.getAvailableSites(dev, x_min, x_max, y_min, y_max);
-                // change the keys of selected sites to accustom cma decoder
-                Map<SiteTypeEnum, List<List<Site>>> adapted = new HashMap<>();
-                adapted.put(DSP_MAP, allAvailSites.get(DSP_SITE_TYPE));
-                adapted.put(BRAM_MAP, allAvailSites.get(BRAM_SITE_TYPE));
-                adapted.put(URAM_MAP, allAvailSites.get(URAM_SITE_TYPE));
-                Map<SiteTypeEnum, List<Site[]>> selectedSites = chooseSiteUniformly(adapted, block_num);
-                double wirelength = 0, size;
-                try {
-                    PrintWriter pr = new PrintWriter(new FileWriter(converge_data, true), true);
-                    Map<Integer, List<Site[]>> placement = PlaceDecoder.decode(current.getPoint(), selectedSites);
-                    Utility U = new Utility(placement, Device);
-                    wirelength = U.getUnifiedWireLength();
-                    size = U.getMaxBBoxSize();
-
-                    pr.println(i + " " + wirelength + " " + size);
-
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
-                return wirelength < 4500;
-            }
-        };
 
 
         // Convergence checker: GIF data, called after each iteration
-        String gif_data_dir = System.getProperty("RAPIDWRIGHT_PATH") + "/result/CMA_gif_data/";
+        String gif_data_dir = System.getProperty("RAPIDWRIGHT_PATH") + "/result/demo_gif_data/";
         File gif_dir = new File(gif_data_dir);
         if (gif_dir.mkdirs())
             System.out.println("created dir " + gif_dir);
-        else
-            System.out.println("directory " + gif_dir + " exists");
-        ConvergenceChecker<PointValuePair> checker_for_gif_data = new ConvergenceChecker<PointValuePair>() {
-            @Override
-            public boolean converged(int i, PointValuePair previous, PointValuePair current) {
+        ConvergenceChecker<PointValuePair> checker_for_gif_data = (i, previous, current) -> {
 
-                //System.out.println("Convergence checker for GIF data is called");
-
-                Map<SiteTypeEnum, List<List<Site>>> allAvailSites = Opt.PlaceCreator.getAvailableSites(dev, x_min, x_max, y_min, y_max);
-                // change the keys of selected sites to accustom cma decoder
-                Map<SiteTypeEnum, List<List<Site>>> adapted = new HashMap<>();
-                adapted.put(DSP_MAP, allAvailSites.get(DSP_SITE_TYPE));
-                adapted.put(BRAM_MAP, allAvailSites.get(BRAM_SITE_TYPE));
-                adapted.put(URAM_MAP, allAvailSites.get(URAM_SITE_TYPE));
-                Map<SiteTypeEnum, List<Site[]>> selectedSites = chooseSiteUniformly(adapted, block_num);
-                Map<Integer, List<Site[]>> placement = PlaceDecoder.decode(current.getPoint(), selectedSites);
-                Utility U = new Utility(placement, Device);
-                double wirelength = U.getUnifiedWireLength();
-                if (i > 30000 || i % 3 != 0) return wirelength < 4500;
-
-                try {
-                    PrintWriter pr = new PrintWriter(new FileWriter(gif_data_dir + i + ".xdc"), true);
-                    Tool.write_XDC(placement, pr);
-                    //System.out.println("XDC file at iteration " + i + " is called.");
-                    pr.close();
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
-                return wirelength < 4500;
+            Map<SiteTypeEnum, List<List<Site>>> allAvailSites = Opt.PlaceCreator.getAvailableSites(dev, x_min, x_max, y_min, y_max);
+            // change the keys of selected sites to accustom cma decoder
+            Map<SiteTypeEnum, List<List<Site>>> adapted = new HashMap<>();
+            adapted.put(DSP_MAP, allAvailSites.get(DSP_SITE_TYPE));
+            adapted.put(BRAM_MAP, allAvailSites.get(BRAM_SITE_TYPE));
+            adapted.put(URAM_MAP, allAvailSites.get(URAM_SITE_TYPE));
+            Map<SiteTypeEnum, List<Site[]>> selectedSites = chooseSiteUniformly(adapted, block_num);
+            Map<Integer, List<Site[]>> placement = PlaceDecoder.decode(current.getPoint(), selectedSites);
+            Utility U = new Utility(placement, Device);
+            double wirelength = U.getUnifiedWireLength();
+            if (i > 30000 || i % 3 != 0) return wirelength < 4500;
+            try {
+                PrintWriter pr = new PrintWriter(new FileWriter(gif_data_dir + i + ".xdc"), true);
+                Tool.write_XDC(placement, pr);
+                pr.close();
+            } catch (IOException e) {
+                e.printStackTrace();
             }
+            return wirelength < 4500;
         };
 
         /* data collection options */
-        Properties prop = null;
-        try {
-            prop = Tool.getProperties();
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-        assert prop != null;
-        boolean collect_gif_data = Boolean.parseBoolean(prop.getProperty("collect_gif_data"));
-        boolean collect_converge_data = Boolean.parseBoolean(prop.getProperty("collect_converge_data"));
+        Properties prop = Tool.getProperties();
+        boolean generate_gif = Boolean.parseBoolean(prop.getProperty("generate_gif"));
 
-        CMAESOptimizer opt = new CMAESOptimizer(maxIteration, stopFitness, isActiveCMA, diagonalOnly,
-                checkFeasibleCount, new JDKRandomGenerator(), generateStatistics, null);
+        CMAESOptimizer opt;
 
-        if (collect_gif_data) {
-            //System.out.println("collect gif data: yes");
+        if (generate_gif) {
             opt = new CMAESOptimizer(maxIteration, stopFitness, isActiveCMA, diagonalOnly,
                     checkFeasibleCount, new JDKRandomGenerator(), generateStatistics, checker_for_gif_data);
-        }
-
-        if (collect_converge_data) {
+        } else {
             opt = new CMAESOptimizer(maxIteration, stopFitness, isActiveCMA, diagonalOnly,
-                    checkFeasibleCount, new JDKRandomGenerator(), generateStatistics, checker_for_convergence_data);
+                    checkFeasibleCount, new JDKRandomGenerator(), generateStatistics, null);
         }
-
 
         /* find solution */
         long start_time = System.nanoTime();

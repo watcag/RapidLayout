@@ -28,12 +28,12 @@ import java.util.*;
 
 import static main.Vivado.vivado_cmd;
 
-public class OtherDevices {
+public class TransferLearning {
 
-    private static String root = System.getenv("RAPIDWRIGHT_PATH");
-    private static String checkpoint = root + "/checkpoint/";
-    private static String result = root + "/result/";
-    private static String device = "xcvu37p";
+    private static final String root = System.getenv("RAPIDWRIGHT_PATH");
+    private static final String checkpoint = root + "/checkpoint/";
+    private static final String result = root + "/result/";
+    private static String device = "xcvu11p";
     private static String part = new Design("name", device).getPartName();
     private static int blocknum = 0;
     private static int ymax = 0;
@@ -239,7 +239,7 @@ public class OtherDevices {
         long start = System.nanoTime();
 
         // synthesize
-        Design d = Helper2.synthesize_vivado(blocknum, part, 0, true);
+        Design d = Helper.synthesize_vivado(blocknum, part, 0, true);
 
         // read in 80 block placement and replicate to 1 SLR
         Map<Integer, List<Site[]>> p = Tool.getMapFromXDC(xdcFile, device);
@@ -267,7 +267,7 @@ public class OtherDevices {
         if (file.exists())
             file.delete();
         d.writeCheckpoint(placedDCPPath);
-        double freq = Helper2.finishPlacementNRoutePBlock(placedDCPPath, placement, device, true);
+        double freq = Helper.finishPlacementNRoutePBlock(placedDCPPath, placement, device, true);
 
         long end = System.nanoTime();
 
@@ -399,122 +399,91 @@ public class OtherDevices {
         //checkResources();
         //scratch_time();
     }
-}
 
 
 
 
 
+    static class Helper {
 
+        private static final String root = System.getenv("RAPIDWRIGHT_PATH");
+        private static final String checkpoint = root + "/checkpoint/";
+        private static final String tcl = root + "/tcl/";
 
+        // checkpoint/METHOD_eval/BBOXSIZE_FREQMHz.dcp
+        public static double finishPlacementNRoutePBlock(String placedDCP,
+                                                         Map<Integer, List<Site[]>> placement, String device,
+                                                         boolean verbose) throws IOException {
+            String tcl_path = tcl + "finish_placement.tcl";
+            String output_path = checkpoint + "Transfer/routed.dcp";
+            String output_edif = checkpoint +  "Transfer/routed.edf";
+            // write tcl script
+            try (FileWriter write = new FileWriter(tcl_path)) {
+                PrintWriter printWriter = new PrintWriter(write, true);
+                printWriter.println("open_checkpoint " + placedDCP);
+                Vivado.PBlockConstraint(printWriter, placement, device);
+                printWriter.println("create_clock -period 1.000 -waveform {0.000 0.500} [get_nets clk];");
+                printWriter.println("place_design;");
+                printWriter.println("route_design");
+                printWriter.println("report_timing;");
+                printWriter.println("write_checkpoint -force -file " + output_path);
+                printWriter.println("write_edf -force -file " + output_edif);
+                printWriter.println("exit");
+                printWriter.close();
+            }
 
+            String slack = vivado_cmd("vivado -mode tcl -source " + tcl_path, verbose);
 
+            double violation = Double.parseDouble(slack.substring(slack.indexOf("-"), slack.indexOf("ns")));
+            double clk_period = 1 - violation;
 
+            double freq = (1e9 / clk_period) / 1e6; // MHz
 
+            DecimalFormat fmt = new DecimalFormat("#.##");
 
+            // rename checkpoints
+            File ckpt = new File(output_path);
+            File edf = new File(output_edif);
+            ckpt.renameTo(new File(ckpt.getParent() + "/" + device + "_" + fmt.format(freq) + "MHz.dcp"));
+            edf.renameTo(new File(ckpt.getParent() + "/" + device + "_" + fmt.format(freq) + "MHz.edf"));
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-/*-------------------------------------------------------------------------------------------------------------------*/
-
-class Helper2 {
-
-    private static String root = System.getenv("RAPIDWRIGHT_PATH");
-    private static String checkpoint = root + "/checkpoint/";
-    private static String result = root + "/result/";
-    private static String tcl = root + "/tcl/";
-
-    // checkpoint/METHOD_eval/BBOXSIZE_FREQMHz.dcp
-    public static double finishPlacementNRoutePBlock(String placedDCP,
-                                                     Map<Integer, List<Site[]>> placement, String device,
-                                                     boolean verbose) throws IOException {
-        String tcl_path = tcl + "finish_placement.tcl";
-        String output_path = checkpoint + "Transfer/routed.dcp";
-        String output_edif = checkpoint +  "Transfer/routed.edf";
-        // write tcl script
-        try (FileWriter write = new FileWriter(tcl_path)) {
-            PrintWriter printWriter = new PrintWriter(write, true);
-            printWriter.println("open_checkpoint " + placedDCP);
-            Vivado.PBlockConstraint(printWriter, placement, device);
-            printWriter.println("create_clock -period 1.000 -waveform {0.000 0.500} [get_nets clk];");
-            printWriter.println("place_design;");
-            printWriter.println("route_design");
-            printWriter.println("report_timing;");
-            printWriter.println("write_checkpoint -force -file " + output_path);
-            printWriter.println("write_edf -force -file " + output_edif);
-            printWriter.println("exit");
-            printWriter.close();
+            return freq;
         }
 
-        String slack = vivado_cmd("vivado -mode tcl -source " + tcl_path, verbose);
-
-        double violation = Double.parseDouble(slack.substring(slack.indexOf("-"), slack.indexOf("ns")));
-        double clk_period = 1 - violation;
-
-        double freq = (1e9 / clk_period) / 1e6; // MHz
-
-        DecimalFormat fmt = new DecimalFormat("#.##");
-
-        // rename checkpoints
-        File ckpt = new File(output_path);
-        File edf = new File(output_edif);
-        ckpt.renameTo(new File(ckpt.getParent() + "/" + device + "_" + fmt.format(freq) + "MHz.dcp"));
-        edf.renameTo(new File(ckpt.getParent() + "/" + device + "_" + fmt.format(freq) + "MHz.edf"));
-
-        return freq;
-    }
 
 
+        public static Design synthesize_vivado(int block_num, String part, int depth, boolean verbose){
+            String tcl_path = tcl + "synth.tcl";
+            String output_path = checkpoint  + block_num + "_" + part;
+            File checkpoint = new File(output_path+".dcp");
 
-    public static Design synthesize_vivado(int block_num, String part, int depth, boolean verbose){
-        String tcl_path = tcl + "synth.tcl";
-        String output_path = checkpoint  + block_num + "_" + part;
-        File checkpoint = new File(output_path+".dcp");
+            if (checkpoint.exists())
+                return Design.readCheckpoint(output_path+".dcp");
 
-        if (checkpoint.exists())
+            // write tcl script
+            try (FileWriter write = new FileWriter(tcl_path)) {
+                PrintWriter printWriter = new PrintWriter(write, true);
+                printWriter.println("read_verilog ../verilog/addr_gen.v ../verilog/dsp_conv.v ../verilog/dsp_conv_top.v ../verilog/dsp_conv_chip.sv");
+                printWriter.println("set_property generic {NUMBER_OF_REG=" + depth + " Y="+block_num+"} [current_fileset]");
+                printWriter.println("synth_design -mode out_of_context -part "+ part +" -top dsp_conv_chip;");
+                printWriter.println("write_checkpoint -force -file " + output_path + ".dcp");
+                printWriter.println("write_edif -force -file " + output_path + ".edf");
+                printWriter.println("exit");
+                printWriter.close();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+
+            long start_time = System.nanoTime();
+            vivado_cmd("vivado -mode tcl -source " + tcl_path, verbose);
+            long end_time = System.nanoTime();
+            String s = "Synthesis - " + block_num + " conv blocks, time = " + (end_time-start_time)/1e9/60 + " min";
+            System.out.println(">>>-----------------------------------------------");
+            System.out.println(s);
+            System.out.println(">>>-----------------------------------------------");
+
             return Design.readCheckpoint(output_path+".dcp");
-
-        // write tcl script
-        try (FileWriter write = new FileWriter(tcl_path)) {
-            PrintWriter printWriter = new PrintWriter(write, true);
-            printWriter.println("read_verilog ../verilog/addr_gen.v ../verilog/dsp_conv.v ../verilog/dsp_conv_top.v ../verilog/dsp_conv_chip.sv");
-            printWriter.println("set_property generic {NUMBER_OF_REG=" + depth + " Y="+block_num+"} [current_fileset]");
-            printWriter.println("synth_design -mode out_of_context -part "+ part +" -top dsp_conv_chip;");
-            printWriter.println("write_checkpoint -force -file " + output_path + ".dcp");
-            printWriter.println("write_edif -force -file " + output_path + ".edf");
-            printWriter.println("exit");
-            printWriter.close();
-        } catch (IOException e) {
-            e.printStackTrace();
         }
 
-        long start_time = System.nanoTime();
-        vivado_cmd("vivado -mode tcl -source " + tcl_path, verbose);
-        long end_time = System.nanoTime();
-        String s = "Synthesis - " + block_num + " conv blocks, time = " + (end_time-start_time)/1e9/60 + " min";
-        System.out.println(">>>-----------------------------------------------");
-        System.out.println(s);
-        System.out.println(">>>-----------------------------------------------");
-
-        return Design.readCheckpoint(output_path+".dcp");
     }
-
-
-
-
-
-
 }

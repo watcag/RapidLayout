@@ -112,11 +112,10 @@ public class StartOptimization {
                 e.printStackTrace();
             }
             assert prop != null;
-            boolean collect_gif_data = Boolean.parseBoolean(prop.getProperty("collect_gif_data"));
-            boolean collect_converge_data = Boolean.parseBoolean(prop.getProperty("collect_converge_data"));
+            boolean generate_gif = Boolean.parseBoolean(prop.getProperty("generate_gif"));
 
-            if (collect_gif_data) {
-                String path = System.getProperty("RAPIDWRIGHT_PATH") + "/result/" + Global.method + "_gif_data/";
+            if (generate_gif) {
+                String path = System.getProperty("RAPIDWRIGHT_PATH") + "/result/demo_gif_data/";
                 File file = new File(path);
                 if (file.mkdirs())
                     System.out.println("directory " + path + " is created");
@@ -133,21 +132,6 @@ public class StartOptimization {
                 }
             }
 
-            if (collect_converge_data) {
-                String converge_data_path = System.getenv("RAPIDWRIGHT_PATH") + "/result/" + Global.method + "_convergence_data";
-                File data_path = new File(converge_data_path);
-                if (data_path.mkdirs())
-                    System.out.println("directory " + data_path + " is created");
-                if (i>30000) return;
-                String this_run = converge_data_path + "/" + Global.time + ".txt";
-                try {
-                    FileWriter this_run_fw = new FileWriter(this_run, true);
-                    PrintWriter this_run_pw = new PrintWriter(this_run_fw, true);
-                    this_run_pw.println(i + " " + wirelength + " " + size);
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
-            }
 
         }
     }

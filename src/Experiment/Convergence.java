@@ -17,6 +17,8 @@ public class Convergence {
             System.setProperty("RAPIDWRIGHT_PATH", System.getenv("RAPIDWRIGHT_PATH"));
 
         String device = "vu11p";
+        Tool.changeProperty("transfer", "false");
+
 
         int mode = 1;
         final boolean visual = false;

@@ -14,14 +14,15 @@ import java.text.DecimalFormat;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 
 public class EvaluateFmax {
 
-    private static String root = System.getenv("RAPIDWRIGHT_PATH");
-    private static String checkpoint = root + "/checkpoint/";
-    private static String result = root + "/result/";
-    private static String device = "xcvu11p";
-    private static String part = new Design("name", device).getPartName();
+    private static final String root = System.getenv("RAPIDWRIGHT_PATH");
+    private static final String checkpoint = root + "/checkpoint/";
+    private static final String result = root + "/result/";
+    private static final String device = "xcvu11p";
+    private static final String part = new Design("name", device).getPartName();
 
 
     // get FMax for one solution
@@ -93,7 +94,7 @@ public class EvaluateFmax {
         final File srcFoler = new File(result + method + "_results");
 
         // implement each xdc placement result
-        for(final File f : srcFoler.listFiles()) {
+        for(final File f : Objects.requireNonNull(srcFoler.listFiles())) {
 
             if (f.isDirectory()) continue;
 
@@ -166,10 +167,10 @@ public class EvaluateFmax {
 
 class Helpers {
 
-    private static String root = System.getenv("RAPIDWRIGHT_PATH");
-    private static String checkpoint = root + "/checkpoint/";
-    private static String result = root + "/result/";
-    private static String tcl = root + "/tcl/";
+    private static final String root = System.getenv("RAPIDWRIGHT_PATH");
+    private static final String checkpoint = root + "/checkpoint/";
+    private static final String result = root + "/result/";
+    private static final String tcl = root + "/tcl/";
     // we need a function to match optimization information from bboxsize
 
     // input method, bboxsize
@@ -233,8 +234,10 @@ class Helpers {
         // rename checkpoints
         File ckpt = new File(output_path);
         File edf = new File(output_edif);
-        ckpt.renameTo(new File(ckpt.getParent() + "/" + bboxSize + "_" + fmt.format(freq) + "MHz.dcp"));
-        edf.renameTo(new File(ckpt.getParent() + "/" + bboxSize + "_" + fmt.format(freq) + "MHz.edf"));
+        boolean success = ckpt.renameTo(new File(ckpt.getParent() + "/" + bboxSize + "_" + fmt.format(freq) + "MHz.dcp"));
+        if (!success) System.out.println("rename DCP failed");
+        success = edf.renameTo(new File(ckpt.getParent() + "/" + bboxSize + "_" + fmt.format(freq) + "MHz.edf"));
+        if (!success) System.out.println("rename EDF failed");
 
         return freq;
     }

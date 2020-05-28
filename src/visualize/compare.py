@@ -282,7 +282,7 @@ def plot_comparison2(dataPath, imagePath):
     ga_t, ga_f = read_freq(dataPath + '/eval/GA_eval.txt')
 
     print('cma f avg = %f' % (sum(cma_f)/len(cma_f)))
-    print('sa f avg = %f' % (sum(sa_f)/len(sa_f)))
+    print('sa f avg = %f' % (sum(sa_f)/len(sa_f)))d
     print('ea f avg = %f' % (sum(ea_f)/len(ea_f)))
     print('ear f avg = %f' % (sum(ear_f)/len(ear_f)))
     print('ga f avg = %f' % (sum(ga_f)/len(ga_f)))

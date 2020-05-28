@@ -34,19 +34,20 @@ public class MinRect {
         Map<SiteTypeEnum, List<List<Site>>> map = Opt.PlaceCreator.getAllAvailableSites(this.device);
 
         System.out.println("All Available Hard Blocks on FPGA: ");
+        // column number x row number
         System.out.println("DSP: " + map.get(DSP_SITE_TYPE).size() + " x " + map.get(DSP_SITE_TYPE).get(0).size());
         System.out.println("BRAM: " + map.get(BRAM_SITE_TYPE).size() + " x " + map.get(BRAM_SITE_TYPE).get(0).size());
         System.out.println("URAM: " + map.get(URAM_SITE_TYPE).size() + " x " + map.get(URAM_SITE_TYPE).get(0).size());
         System.out.println("number of SLR: " + this.device.getSLRs().length);
+        int numSLR = this.device.getSLRs().length;
         // int max_dsp_num = map.get(DSP_SITE_TYPE).get(0).size() / 9 * map.get(DSP_SITE_TYPE).size() * 2;
         // int max_bram_num = map.get(BRAM_SITE_TYPE).get(0).size() / 4 * map.get(BRAM_SITE_TYPE).size() * 2;
-        int max_dsp_num = map.get(DSP_SITE_TYPE).get(0).size() / 9 * map.get(DSP_SITE_TYPE).size() / 2;
-        int max_bram_num = map.get(BRAM_SITE_TYPE).get(0).size() / 4 * map.get(BRAM_SITE_TYPE).size() / 2;
-        int max_uram_num = map.get(URAM_SITE_TYPE).get(0).size() / 2 * map.get(URAM_SITE_TYPE).size();
+        int max_dsp_num = map.get(DSP_SITE_TYPE).get(0).size() / numSLR / 9   * map.get(DSP_SITE_TYPE).size() / 2 * numSLR;
+        int max_bram_num = map.get(BRAM_SITE_TYPE).get(0).size() / numSLR / 4 * map.get(BRAM_SITE_TYPE).size() / 2 * numSLR;
+        int max_uram_num = map.get(URAM_SITE_TYPE).get(0).size() / numSLR / 2 * map.get(URAM_SITE_TYPE).size() * numSLR;
         int blocks = Math.min(Math.min(max_dsp_num, max_bram_num), max_uram_num);
         System.out.println("max number of block = " + blocks);
 
-        int numSLR = this.device.getNumOfSLRs();
         int blocksPerSLR = blocks / numSLR;
 
         int ymax = 0;
@@ -109,7 +110,7 @@ public class MinRect {
 
 
     public static void main(String[] args) {
-        MinRect mr = new MinRect("vu11p", 18, 8, 2);
+        MinRect mr = new MinRect("vu9p", 18, 8, 2);
         int blockNum = mr.getBlocknum();
         int Ymax = mr.getYmax();
 

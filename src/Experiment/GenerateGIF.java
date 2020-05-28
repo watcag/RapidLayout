@@ -20,6 +20,7 @@ public class GenerateGIF {
             System.setProperty("RAPIDWRIGHT_PATH", System.getenv("RAPIDWRIGHT_PATH"));
 
         String device = "vu11p";
+        Tool.changeProperty("transfer", "false");
 
         int mode = 2;
         final boolean visual = false;
