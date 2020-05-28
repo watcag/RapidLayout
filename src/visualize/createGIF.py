@@ -97,3 +97,4 @@ if __name__ == "__main__":
     gifFile = root + "/visual/fused.gif"
     imageio.mimsave(gifFile, frames)
     optimize(gifFile)
+    os.rmdir(saveDir)

@@ -33,6 +33,7 @@ public class NSGA {
     private static String device;
     private static boolean collect_gif_data;
     private static boolean collect_converge_data;
+    private static boolean for_transfer_learning = false;
     private static int iteration;
 
     public static class monitor implements OptimizerIterationListener {
@@ -136,7 +137,7 @@ public class NSGA {
     }
 
     @SuppressWarnings({"unchecked"})
-    public static double[] run() {
+    public static double[] run() throws IOException {
 
         String method = "EA";
         int population = 5;
@@ -234,6 +235,16 @@ public class NSGA {
             double unitWireLength = U.getUnifiedWireLength();
             double size = U.getMaxBBoxSize();
 
+            if (for_transfer_learning){
+                String results_path = System.getenv("RAPIDWRIGHT_PATH") + "/result/Transfer/";
+                File data_path = new File(results_path);
+                if (data_path.mkdirs())
+                    System.out.println("directory " + data_path + " is created");
+
+                String xdcName = results_path + "/" + device + ".xdc";
+                Tool.write_XDC(phenotype, new PrintWriter(new FileWriter(xdcName), true));
+            }
+
             return new double[]{size, unitWireLength};
 
         } catch (Exception e) {
@@ -299,6 +310,20 @@ public class NSGA {
                 break;
         }
         collect_data();
+    }
+
+    /* this function is designed for transfer learning, where we want to save the result placement xdc
+    * file to a particular directory */
+    public static double[] call(String dev, boolean visualize) throws IOException {
+        // set up env variable
+        if (System.getenv("RAPIDWRIGHT_PATH") == null)
+            System.setProperty("RAPIDWRIGHT_PATH", System.getProperty("user.home") + "/RapidWright");
+        else
+            System.setProperty("RAPIDWRIGHT_PATH", System.getenv("RAPIDWRIGHT_PATH"));
+        device = dev;
+        visual = visualize;
+        for_transfer_learning = true;
+        return run();
     }
 
 

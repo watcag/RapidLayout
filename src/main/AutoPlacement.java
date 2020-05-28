@@ -212,7 +212,7 @@ public class AutoPlacement {
         This is the entire toolflow as a demo. The configurations are loaded
         from ./config.properties
     */
-    public static void toolflow() throws IOException {
+    public static double[] toolflow() throws IOException {
 
         // TODO: add GIF option
 
@@ -247,6 +247,14 @@ public class AutoPlacement {
         int parents = 20;
         int children = 50;
         double crossoverR = 0.98;
+
+        // set up gif data folder
+        if (generate_gif) {
+            String gif_folder = results + "demo_gif_data/";
+            File gif_dir = new File(gif_folder);
+            if (gif_dir.exists()) if (gif_dir.delete()) System.out.println("deleted old demo gif folder");
+            if (gif_dir.mkdirs()) System.out.println("created dir " + gif_dir);
+        }
 
         /* --- find placement solution --- */
         Map<Integer, List<Site[]>> result;
@@ -331,6 +339,14 @@ public class AutoPlacement {
         System.out.println(">>>-----------------------------------------------");
         full_chip_routed.writeCheckpoint(checkpoint + "full-chip_" + device + ".dcp");
         System.out.println("$$$$ frequency =  " + freq/1e6 + " MHz");
+
+        /* -- Generate GIF --- */
+        if (generate_gif){
+            String script = root + "src/visualize/draw_demo.py";
+            Tool.execute_cmd("python3 " + script);
+        }
+
+        return new double[]{freq / 1e6, (end_time - start_time) / 1e9 / 60};
 
     }
 
