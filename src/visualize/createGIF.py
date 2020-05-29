@@ -3,6 +3,7 @@ import imageio
 import matplotlib.pyplot as plt
 from pygifsicle import optimize
 from overall_visual import draw_frame
+import shutil
 
 
 def sorter(item):
@@ -97,4 +98,4 @@ if __name__ == "__main__":
     gifFile = root + "/visual/fused.gif"
     imageio.mimsave(gifFile, frames)
     optimize(gifFile)
-    os.rmdir(saveDir)
+    shutil.rmtree(saveDir)

@@ -118,7 +118,7 @@ public class TransferLearning {
         else
             System.setProperty("RAPIDWRIGHT_PATH", System.getenv("RAPIDWRIGHT_PATH"));
 
-        boolean visualize = false;
+        final boolean visualize = false;
 
         get_all_xdc(visualize);
         batch_implement();

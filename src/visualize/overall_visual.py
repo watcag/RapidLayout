@@ -286,7 +286,7 @@ def draw_frame(ax, filename, iteration, method):
                 sites[entries.index(pair) * 4 + index, 1] = y[index]
         drawTiles(ax, sites, '#000000')
 
-    ax.set_xlabel("iteration = {}".format(iteration))
+    ax.set_xlabel("iteration = {}".format(iteration), fontsize=20)
     ax.set_title(method, fontsize=30)
 
     ax.tick_params(

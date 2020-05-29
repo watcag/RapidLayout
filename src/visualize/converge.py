@@ -4,7 +4,6 @@ import os
 from math import sqrt
 
 import matplotlib.pyplot as plt
-import numpy as np
 from matplotlib.pyplot import rcParams
 from matplotlib.ticker import EngFormatter
 
@@ -16,53 +15,147 @@ def read_convergence_data(path):
     spreads = []
     wirelengths = []
     with open(path) as file:
-        i = 0
         for line in file:
-            if i % 100 != 0:
-                i += 1
-                # continue
             step, wirelength, spread = line.split()
-            # print('time = %s, spread = %s, wirelength = %s' % (time, spread, wirelength))
+            if "EA" in path or "SA" in path:
+                wirelength = sqrt(float(wirelength))
+            # print('time = %s, spread = %s, wirelength = %s' % (step, spread, wirelength))
+            if float(step) > 30000: continue
             steps.append(float(step))
             spreads.append(float(spread))
             wirelengths.append(float(wirelength))
-            i += 1
+        if steps[-1] != 30000:
+            steps.append(30000)
+            spreads.append(spreads[-1])
+            wirelengths.append(wirelengths[-1])
     return steps, wirelengths, spreads
 
 
-def calc_error_bar(path, ll, wl=0):
+def calc_error_bar_wr2s(path):
     runs = glob.glob(path)
     upper = []
     avg = []
     lower = []
-    all = []
     lengths = []
+    data = []
+    steps = []
     for run in runs:
+        # read data of one run
         step, wirelength, sp = read_convergence_data(run)
-        data = wirelength if wl == 1 else sp
-        if wl == 1 and 'cma' not in path:
-            for i, d in enumerate(data): data[i] = sqrt(d)
-        all.append(data)
-        lengths.append(len(data))
-    all_array = np.array(all)
-    cols = min(lengths)
-    if ll == -1: ll = cols  # for SA, ll input -1
-    for i in range(ll):
-        this_iteration = []
-        for each_run in all_array:
-            if i < cols:
-                this_iteration.append(each_run[i])
-            else:
-                this_iteration.append(each_run[-1])
-        this_max = max(this_iteration)
-        this_min = min(this_iteration)
-        this_avg = sum(this_iteration) / len(this_iteration)
-        avg.append(this_avg)
-        upper.append(this_max)
-        lower.append(this_min)
+        # collect score, score = wirelength^2 * bbox
+        d = []
+        for i in range(len(wirelength)):
+            d.append(wirelength[i] * wirelength[i] * sp[i])
+        data.append(d)
+        lengths.append(len(d))
+        if len(step) > len(steps):
+            steps.clear()
+            steps = step
 
-    it = range(len(avg))
-    return it, avg, lower, upper
+    # make data of all runs of the same length
+    longest_length = max(lengths)
+    for line in data:
+        while len(line) < longest_length:
+            last_value = line[-1]
+            line.append(last_value)
+
+    # calculate the average, upper and lower
+    for index in range(longest_length):
+        this_run = []
+        for run in range(len(runs)):
+            this_run.append(data[run][index])
+        this_upper = max(this_run)
+        this_lower = min(this_run)
+        this_avg = sum(this_run) / len(this_run)
+        upper.append(this_upper)
+        lower.append(this_lower)
+        avg.append(this_avg)
+
+    return steps, avg, upper, lower
+
+def calc_error_bar_wr2(path):
+    runs = glob.glob(path)
+    upper = []
+    avg = []
+    lower = []
+    lengths = []
+    data = []
+    steps = []
+    for run in runs:
+        # read data of one run
+        step, wirelength, sp = read_convergence_data(run)
+        # collect score, score = wirelength^2 * bbox
+        d = []
+        for i in range(len(wirelength)):
+            d.append(wirelength[i] * wirelength[i])
+        data.append(d)
+        lengths.append(len(d))
+        if len(step) > len(steps):
+            steps.clear()
+            steps = step
+
+    # make data of all runs of the same length
+    longest_length = max(lengths)
+    for line in data:
+        while len(line) < longest_length:
+            last_value = line[-1]
+            line.append(last_value)
+
+    # calculate the average, upper and lower
+    for index in range(longest_length):
+        this_run = []
+        for run in range(len(runs)):
+            this_run.append(data[run][index])
+        this_upper = max(this_run)
+        this_lower = min(this_run)
+        this_avg = sum(this_run) / len(this_run)
+        upper.append(this_upper)
+        lower.append(this_lower)
+        avg.append(this_avg)
+
+    return steps, avg, upper, lower
+
+def calc_error_bar_s(path):
+    runs = glob.glob(path)
+    upper = []
+    avg = []
+    lower = []
+    lengths = []
+    data = []
+    steps = []
+    for run in runs:
+        # read data of one run
+        step, wirelength, sp = read_convergence_data(run)
+        # collect score, score = wirelength^2 * bbox
+        d = []
+        for i in range(len(wirelength)):
+            d.append(sp[i])
+        data.append(d)
+        lengths.append(len(d))
+        if len(step) > len(steps):
+            steps.clear()
+            steps = step
+
+    # make data of all runs of the same length
+    longest_length = max(lengths)
+    for line in data:
+        while len(line) < longest_length:
+            last_value = line[-1]
+            line.append(last_value)
+
+    # calculate the average, upper and lower
+    for index in range(longest_length):
+        this_run = []
+        for run in range(len(runs)):
+            this_run.append(data[run][index])
+        this_upper = max(this_run)
+        this_lower = min(this_run)
+        this_avg = sum(this_run) / len(this_run)
+        upper.append(this_upper)
+        lower.append(this_lower)
+        avg.append(this_avg)
+
+    return steps, avg, upper, lower
 
 
 def plot_convergence(savePath):
@@ -70,97 +163,54 @@ def plot_convergence(savePath):
     resultDir = os.environ['RAPIDWRIGHT_PATH'] + "/result"
 
     plt.style.use('seaborn-paper')
-    fig, (ax, ax2, ax3) = plt.subplots(1, 3)
-    fig.set_size_inches(21, 4.7)
+    fig, (ax3, ax, ax2) = plt.subplots(1, 3)
+    fig.set_size_inches(18, 4.7)
     ax.autoscale(True)
 
     ax.set_yscale('log')
     ax2.set_yscale('log')
     ax3.set_yscale('log')
 
-    # wirelength^2
-    it, sa_avg, sa_lower, sa_upper = calc_error_bar(resultDir + '/SA_convergence_data/*.txt', wl=1, ll=-1)
-    for i, v in enumerate(sa_avg): sa_avg[i] = v * v
-    for i, v in enumerate(sa_lower): sa_lower[i] = v * v
-    for i, v in enumerate(sa_upper): sa_upper[i] = v * v
+    # plot bbox size
+    linestyles = [':','-.', '--', '-', '--']
+    runs_list = [resultDir + '/SA_convergence_data/*.txt',
+                 resultDir + '/NSGA_convergence_data/*.txt',
+                 resultDir + '/NSGAR_convergence_data/*.txt',
+                 resultDir + '/CMA_convergence_data/*.txt',
+                 resultDir + '/GA_convergence_data/*.txt']
+    labels = ['SA', 'NSGA-II', 'NSGA-II(Red)', 'CMA-ES', 'GA']
 
-    ax.plot(it, sa_avg, linestyle=':', label="Annealing")
-    ax.fill_between(it, sa_lower, sa_upper, alpha=0.2)
-    ll = len(it)
-    # NSGA-II, NSGA-II reduced, CMA-ES
-    linestyles = ['-.', '--', '-']
-    runs_list = [resultDir + '/EA_convergence_data/*.txt',
-                 resultDir + '/EA-reduced_convergence_data/*.txt',
-                 resultDir + '/cma_convergence_data/*.txt']
-    labels = ['NSGA-II', 'NSGA-II(Red)', 'CMA-ES']
 
     for idx in range(len(runs_list)):
-        it, avg, lower, upper = calc_error_bar(runs_list[idx], wl=1, ll=ll)
-        for i, v in enumerate(avg): avg[i] = v * v
-        for i, v in enumerate(lower): lower[i] = v * v
-        for i, v in enumerate(upper): upper[i] = v * v
-        ax.plot(it, avg, linestyle=linestyles[idx], label=labels[idx])
-        ax.fill_between(it, lower, upper, alpha=0.2)
+        steps, avg, upper, lower = calc_error_bar_wr2(runs_list[idx])
+        ax3.plot(steps, avg, linestyle=linestyles[idx], label=labels[idx])
+        ax3.fill_between(steps, lower, upper, alpha=0.2)
+
+    # ax.legend(prop={'size': 18})
+    ax3.set_xlabel("iterations", fontsize=20)
+    ax3.set_ylabel("$\mathrm{wirelength^2}$", fontsize=20)
+
+    for idx in range(len(runs_list)):
+        steps, avg, upper, lower = calc_error_bar_s(runs_list[idx])
+        ax.plot(steps, avg, linestyle=linestyles[idx], label=labels[idx])
+        ax.fill_between(steps, lower, upper, alpha=0.2)
 
     # ax.legend(prop={'size': 18})
     ax.set_xlabel("iterations", fontsize=20)
-    ax.set_ylabel("$\mathrm{wirelength^2}$", fontsize=20)
-
-    ## bbox width
-    ax2.autoscale(True)
-    # Annealing
-    it, sa_avg, sa_lower, sa_upper = calc_error_bar(resultDir + '/SA_convergence_data/*.txt', wl=0, ll=-1)
-    ax2.plot(it, sa_avg, linestyle=':', label="Annealing")
-    ax2.fill_between(it, sa_lower, sa_upper, alpha=0.2)
-    ll = len(it)
-    # NSGA-II, NSGA-II reduced, CMA-ES
-    linestyles = ['-.', '--', '-']
-    runs_list = [resultDir + '/EA_convergence_data/*.txt',
-                 resultDir + '/EA-reduced_convergence_data/*.txt',
-                 resultDir + '/cma_convergence_data/*.txt']
-    labels = ['NSGA-II', 'NSGA-II(Red)', 'CMA-ES']
+    ax.set_ylabel("max bbox size", fontsize=20)
 
     for idx in range(len(runs_list)):
-        it, avg, lower, upper = calc_error_bar(runs_list[idx], wl=0, ll=ll)
-        ax2.plot(it, avg, linestyle=linestyles[idx], label=labels[idx])
-        ax2.fill_between(it, lower, upper, alpha=0.2)
+        steps, avg, upper, lower = calc_error_bar_wr2s(runs_list[idx])
+        ax2.plot(steps, avg, linestyle=linestyles[idx], label=labels[idx])
+        ax2.fill_between(steps, lower, upper, alpha=0.2)
 
+    # ax.legend(prop={'size': 18})
     ax2.set_xlabel("iterations", fontsize=20)
-    ax2.set_ylabel("max bbox size", fontsize=20)
-
-    # wirelength ^ 2 * bbox
-    ax3.autoscale(True)
-    it, sa_avg, sa_lower, sa_upper = calc_error_bar(resultDir + '/SA_convergence_data/*.txt', wl=0, ll=-1) # spread
-    _,  sa_wl_avg, sa_wl_lower, sa_wl_upper = calc_error_bar(resultDir + '/SA_convergence_data/*.txt', wl=1, ll=-1) # wirelength
-    for i, v in enumerate(sa_avg): sa_avg[i] = v * v * sa_wl_avg[i]
-    for i, v in enumerate(sa_lower): sa_lower[i] = v * v * sa_wl_lower[i]
-    for i, v in enumerate(sa_upper): sa_upper[i] = v * v * sa_wl_upper[i]
-
-    ax3.plot(it, sa_avg, linestyle=':', label="Annealing")
-    ax3.fill_between(it, sa_lower, sa_upper, alpha=0.2)
-    ll = len(it)
-    # NSGA-II, NSGA-II reduced, CMA-ES
-    linestyles = ['-.', '--', '-']
-    runs_list = [resultDir + '/EA_convergence_data/*.txt',
-                 resultDir + '/EA-reduced_convergence_data/*.txt',
-                 resultDir + '/cma_convergence_data/*.txt']
-    labels = ['NSGA-II', 'NSGA-II(Red)', 'CMA-ES']
-
-    for idx in range(len(runs_list)):
-        it, avg, lower, upper = calc_error_bar(runs_list[idx], wl=0, ll=ll)
-        _, wl_avg, wl_lower, wl_upper = calc_error_bar(runs_list[idx], wl=1, ll=ll)  # wirelength
-        for i, v in enumerate(avg): avg[i] = v * v * wl_avg[i]
-        for i, v in enumerate(lower): lower[i] = v * v * wl_lower[i]
-        for i, v in enumerate(upper): upper[i] = v * v * wl_upper[i]
-        ax3.plot(it, avg, linestyle=linestyles[idx], label=labels[idx])
-        ax3.fill_between(it, lower, upper, alpha=0.2)
-
-    ax3.set_xlabel("iterations", fontsize=20)
-    ax3.set_ylabel("$\mathrm{BboxSize \\times wirelength^2}$", fontsize=20)
+    ax2.set_ylabel("$\mathrm{BboxSize \\times wirelength^2}$", fontsize=20)
 
 
-    handles, labels = ax3.get_legend_handles_labels()
-    fig.legend(handles, labels, loc='upper center', prop={'size': 20}, ncol=4, bbox_to_anchor=(0.5, 0.94),
+    handles, labels = ax.get_legend_handles_labels()
+    fig.legend(handles, labels, loc='upper center', prop={'size': 20}, ncol=5, bbox_to_anchor=(0.5, 0.97),
                frameon=False)
 
     ax.tick_params(axis='both', which='major', labelsize=16)
@@ -168,13 +218,14 @@ def plot_convergence(savePath):
     ax2.tick_params(axis='both', which='major', labelsize=16)
     ax2.tick_params(axis='both', which='minor', labelsize=16)
     ax3.tick_params(axis='both', which='major', labelsize=16)
+    ax3.tick_params(axis='both', which='minor', labelsize=16)
 
 
     formatter0 = EngFormatter(unit=' ')
     ax.xaxis.set_major_formatter(formatter0)
     ax2.xaxis.set_major_formatter(formatter0)
-    ax2.yaxis.set_major_formatter(formatter0)
     ax3.xaxis.set_major_formatter(formatter0)
+
 
     plt.tight_layout()
 
@@ -188,12 +239,9 @@ def plot_convergence(savePath):
 
 
 if __name__ == "__main__":
-    parser = argparse.ArgumentParser(
-        description='Please input image saving directory')
-    parser.add_argument('imgPath', type=str, help='the image saving directory, no ending slash, e.g. ~/home/img')
-    args = parser.parse_args()
 
-    imgPath = args.imgPath
+    root = os.environ['RAPIDWRIGHT_PATH']
+    imgPath = root + "/visual"
 
     if not os.path.isdir(imgPath):
        os.makedirs(imgPath)

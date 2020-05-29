@@ -27,34 +27,10 @@ public class PlaceEvaluator implements Evaluator <Map<Integer, List<Site[]>>> {
     @Override
     public Objectives evaluate(Map<Integer, List<Site[]>> phenotype){
 
-        Set<Integer> keys = phenotype.keySet();
-        List<Site> dspSite = new ArrayList<>();
-        List<Site> bramSite = new ArrayList<>();
-        List<Site> uramSite = new ArrayList<>();
-
-        for (Integer i : keys){
-            dspSite.addAll(Arrays.asList(phenotype.get(i).get(0)));
-            bramSite.addAll(Arrays.asList(phenotype.get(i).get(1)));
-            uramSite.addAll(Arrays.asList(phenotype.get(i).get(2)));
-        }
-
         Utility U = new Utility(phenotype, device);
 
-        double areaPerBlock = U.AreaPerBlock();
         double unifWireLen = U.getUnifiedWireLength();
-        double bottomLeft = U.getCoord();
-        double maxWireLen = U.getMaxWireLength();
-        double maxRange = U.getMaxSpread();
-        double maxArea = U.getMaxArea();
         double maxSize = U.getMaxBBoxSize();
-        double[] utilization = U.getUtilization();
-        double value = (areaPerBlock/100) * (unifWireLen/100) * (bottomLeft/10);
-        if (U.checkDuplicate()){
-            value *= 1000;
-            utilization[0] = 0;
-            utilization[1] = 0;
-            utilization[2] = 0;
-        }
 
         // Observe Evaluation of Current Individual
         Objectives objectives = new Objectives();

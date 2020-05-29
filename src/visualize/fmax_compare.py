@@ -49,17 +49,17 @@ def freq_depth():
     ax.autoscale(True)
 
 
-    cma_data = read_data('eval/CMA_eval.txt')
-    ea_data = read_data('eval/EA_eval.txt')
-    sa_data = read_data('eval/SA_eval.txt')
-    ga_data = read_data('eval/GA_eval.txt')
-    ma_data = read_data('eval/Manual_eval.txt')
-    ear_data = read_data('eval/EA-reduced_eval.txt')
+    cma_data = read_data('./eval/CMA_eval.txt')
+    ea_data = read_data('./eval/EA_eval.txt')
+    sa_data = read_data('./eval/SA_eval.txt')
+    ga_data = read_data('./eval/GA_eval.txt')
+    ma_data = read_data('./eval/Manual_eval.txt')
+    ear_data = read_data('./eval/EA-reduced_eval.txt')
 
     stages = [0,1,2,3,4]
     data = [cma_data, ea_data, sa_data, ga_data, ma_data, ear_data]
     labels = ["CMA-ES", "NSGA-II", "Annealing", "GA", "Manual", "NSGA-II Reduced"]
-    markers = ['*', "^", "o", "D", ">  ", "^"]
+    markers = ['*', "^", "o", "D", ">", "^"]
     color = ['#1f77b4', '#ff7f03', '#2ca02c', '#17becf', '#d62728', '#e377c2']
 
     for i, stage in enumerate(data):

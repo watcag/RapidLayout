@@ -36,6 +36,7 @@ public class NSGA {
     private static boolean for_transfer_learning = false;
     private static int iteration;
     private static boolean absolute_checker = true;
+    private static String this_run;
 
     public static class monitor implements OptimizerIterationListener {
         Archive archive;
@@ -119,12 +120,7 @@ public class NSGA {
             }
 
             if (collect_converge_data) {
-                String converge_data_path = System.getenv("RAPIDWRIGHT_PATH") + "/result/NSGA_convergence_data";
-                File data_path = new File(converge_data_path);
-                if (data_path.mkdirs())
-                    System.out.println("directory " + data_path + " is created");
-                if (i>30000) return;
-                String this_run = converge_data_path + "/run_at" + System.currentTimeMillis() + ".txt";
+                if (i>30000) control.doTerminate();
                 Map<Integer, List<Site[]>> placement = (Map<Integer, List<Site[]>>)best.getPhenotype();
                 Utility U = new Utility(placement, device);
                 double wl = U.getUnifiedWireLength();
@@ -270,6 +266,12 @@ public class NSGA {
         PrintWriter pr = new PrintWriter(new FileWriter(perfFile, true), true);
 
         for (int i=0; i < iteration; i++) {
+
+            String converge_data_path = System.getenv("RAPIDWRIGHT_PATH") + "/result/NSGA_convergence_data";
+            File data_path = new File(converge_data_path);
+            if (data_path.mkdirs())
+                System.out.println("directory " + data_path + " is created");
+            this_run = converge_data_path + "/run_at" + System.currentTimeMillis() + ".txt";
 
             long start = System.currentTimeMillis();
             double[] perfs = run();

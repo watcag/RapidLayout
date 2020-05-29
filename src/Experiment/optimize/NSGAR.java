@@ -34,6 +34,7 @@ public class NSGAR {
     private static boolean collect_gif_data;
     private static boolean collect_converge_data;
     private static int iteration;
+    private static String this_run;
 
     public static class monitor implements OptimizerIterationListener {
         Archive archive;
@@ -109,12 +110,7 @@ public class NSGAR {
             }
 
             if (collect_converge_data) {
-                String converge_data_path = System.getenv("RAPIDWRIGHT_PATH") + "/result/NSGAR_convergence_data";
-                File data_path = new File(converge_data_path);
-                if (data_path.mkdirs())
-                    System.out.println("directory " + data_path + " is created");
-                if (i>30000) return;
-                String this_run = converge_data_path + "/run_at" + System.currentTimeMillis() + ".txt";
+                if (i>30000) control.doTerminate();
                 Map<Integer, List<Site[]>> placement = (Map<Integer, List<Site[]>>)best.getPhenotype();
                 Utility U = new Utility(placement, device);
                 double wl = U.getUnifiedWireLength();
@@ -254,6 +250,12 @@ public class NSGAR {
         PrintWriter pr = new PrintWriter(new FileWriter(perfFile, true), true);
 
         for (int i=0; i < iteration; i++) {
+
+            String converge_data_path = System.getenv("RAPIDWRIGHT_PATH") + "/result/NSGAR_convergence_data";
+            File data_path = new File(converge_data_path);
+            if (data_path.mkdirs())
+                System.out.println("directory " + data_path + " is created");
+            this_run = converge_data_path + "/run_at" + System.currentTimeMillis() + ".txt";
 
             long start = System.currentTimeMillis();
             double[] perfs = run();

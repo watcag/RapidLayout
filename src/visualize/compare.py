@@ -300,7 +300,7 @@ def plot_comparison2(dataPath, imagePath):
     # fig.legend(handles, labels, loc='upper center', prop={'size': 17}, ncol=4, bbox_to_anchor=(0.5, 1.05),
     #            frameon=False)
 
-    fig.legend(handles, labels, loc='upper center', prop={'size': 22}, ncol=4, bbox_to_anchor=(0.5, 0.95 ),
+    fig.legend(handles, labels, loc='upper center', prop={'size': 22}, ncol=4, bbox_to_anchor=(0.5, 0.95),
                frameon=False)
 
     ax.tick_params(axis='both', which='major', labelsize=16)
@@ -316,20 +316,10 @@ def plot_comparison2(dataPath, imagePath):
 
 if __name__ == "__main__":
 
-    parser = argparse.ArgumentParser(
-        description='Please input convergence data directory and the image saving directory')
-    parser.add_argument('dataPath', type=str, help='the convergence data directory, no ending slash, e.g. ~/home/xxx/data')
-    parser.add_argument('imgPath', type=str, help='the image saving directory, no ending slash, e.g. ~/home/img')
-    args = parser.parse_args()
+    root = os.environ['RAPIDWRIGHT_PATH']
 
-    dataPath = args.dataPath
-    imgPath = args.imgPath
-
-    print(dataPath)
-    print(imgPath)
-
-    if not os.path.isdir(dataPath):
-        print("[Python] Invalid path: {}".format(dataPath))
+    dataPath = root + "/result"
+    imgPath = root + "/visual"
 
     if not os.path.isdir(imgPath):
        os.makedirs(imgPath)

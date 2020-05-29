@@ -19,11 +19,7 @@ public class PlaceEvaluator {
             Map<Integer, List<Site[]>> solution = PlaceDecoder.decode(doubles, selectedSites);
             Utility U = new Utility(solution, device);
             double wireLength = U.getUnifiedWireLength();
-            double spread = U.getMaxSpread();
             double size = U.getMaxBBoxSize();
-            //System.out.println("wire length = " + wireLength + ", \t spread = " + spread);
-            //System.out.println(wireLength + " " + spread);
-            //System.out.println("area = " + area);
             return wireLength * wireLength * size;
         }
     };

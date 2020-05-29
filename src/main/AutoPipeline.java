@@ -171,7 +171,7 @@ public class AutoPipeline {
 
 
     public static int get_depth(double distance) {
-        return (int)(distance / 20);
+        return (int)(Math.min(distance / 20, 4));
     }
 
     public static void auto_pipeline(Design d, Integer blockn, Map<Integer, List<Site[]>> placement) throws IOException {

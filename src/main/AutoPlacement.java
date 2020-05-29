@@ -214,8 +214,6 @@ public class AutoPlacement {
     */
     public static double[] toolflow() throws IOException {
 
-        // TODO: add GIF option
-
         // read in configuration
         Properties prop = Tool.getProperties();
         String device = prop.getProperty("device");
@@ -260,16 +258,19 @@ public class AutoPlacement {
         Map<Integer, List<Site[]>> result;
         String xdc_result = results + "blockNum=" + blocknum + ".xdc";
         boolean result_exists = new File(xdc_result).exists();
+        double opt_secs = 0;
 
         if (optimization || (!result_exists && !placement_exists)) {
             // if we want to rerun optimization or there's no existing xdc files
             FileWriter fw = new FileWriter(xdc_result);
             PrintWriter pw = new PrintWriter(fw, true);
+            long start = System.nanoTime();
             result = find_solution(
                     method, blocknum, visualization, device,
                     population, parents, children, crossoverR,
                     x_min, x_max, y_min, y_max);
-
+            long end = System.nanoTime();
+            opt_secs =  (end - start) / 1e9;
             Tool.write_XDC(result, pw);
             pw.close();
         } else if (placement_exists) {
@@ -278,6 +279,9 @@ public class AutoPlacement {
         } else {
             result = Tool.getMapFromXDC(xdc_result, device);
         }
+        Utility U = new Utility(result, device);
+        double bbox_size = U.getMaxBBoxSize();
+        double wirelength = U.getUnifiedWireLength();
         System.out.println("[RapidLayout] Found Placement Strategy for " + result.size() + " blocks of convolution units");
 
         /* --- replicate placement to one SLR --- */
@@ -321,10 +325,14 @@ public class AutoPlacement {
         System.out.println("[RapidLayout] Pipelining finished.");
 
         /* --- finish SLR routing with Vivado --- */
+        double impl_runtime = 0;
         String placedDCP = checkpoint + "blockNum=" + blocknum + "_placed.dcp";
         if (new File(placedDCP).delete()) System.out.println("[RapidLayout] deleted old placed dcp file.");
         d.writeCheckpoint(placedDCP);
+        start_time = System.nanoTime();
         double freq = Vivado.finishPlacementNRoutePBlock(placedDCP, blocknum, result, device, vivado_verbose);
+        end_time = System.nanoTime();
+        impl_runtime += (end_time - start_time) / 1e9 / 60;
         System.out.println("[RapidLayout] clock frequency = " + freq / 1e6 + " MHz");
 
         /* --- SLR Replication --- */
@@ -339,6 +347,7 @@ public class AutoPlacement {
         System.out.println(">>>-----------------------------------------------");
         full_chip_routed.writeCheckpoint(checkpoint + "full-chip_" + device + ".dcp");
         System.out.println("$$$$ frequency =  " + freq/1e6 + " MHz");
+        impl_runtime += (end_time - start_time) / 1e9 / 60;
 
         /* -- Generate GIF --- */
         if (generate_gif){
@@ -346,7 +355,7 @@ public class AutoPlacement {
             Tool.execute_cmd("python3 " + script);
         }
 
-        return new double[]{freq / 1e6, (end_time - start_time) / 1e9 / 60};
+        return new double[]{freq / 1e6, impl_runtime, opt_secs, bbox_size, wirelength};
 
     }
 

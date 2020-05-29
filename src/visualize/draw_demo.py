@@ -3,7 +3,7 @@ import imageio
 import matplotlib.pyplot as plt
 from pygifsicle import optimize
 from overall_visual import draw_frame
-
+import shutil
 
 def sorter(item):
     # sort by name
@@ -48,7 +48,7 @@ if __name__ == "__main__":
     xdc = sorted(xdc, key=sorter)
 
     # how many frame do we want?
-    frame = 10
+    frame = 20
     step = int(len(xdc) / frame)
 
     frames = []
@@ -62,4 +62,4 @@ if __name__ == "__main__":
     imageio.mimsave(gifFile, frames)
     optimize(gifFile)
     print("[RapidLayout] GIF has been saved to : " + gifFile)
-    os.rmdir(saveDir)
+    shutil.rmtree(saveDir)
