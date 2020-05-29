@@ -51,9 +51,9 @@ public class PlaceEvaluator implements Evaluator <Map<Integer, List<Site[]>>> {
             objectives.add("unifWireLength", Objective.Sign.MIN, unifWireLen * unifWireLen);
         } else if (method.equals("GA")) {
             objectives.add("size", Objective.Sign.MIN, maxSize);
-        } else {
-            objectives.add("Spread", Objective.Sign.MIN, maxSize);
-            objectives.add("unifWireLength", Objective.Sign.MIN, unifWireLen * unifWireLen);
+        } else { // SA
+            //objectives.add("Spread", Objective.Sign.MIN, maxSize);
+            //objectives.add("unifWireLength", Objective.Sign.MIN, unifWireLen * unifWireLen);
             objectives.add("product", Objective.Sign.MIN, unifWireLen * unifWireLen * maxSize);
         }
 

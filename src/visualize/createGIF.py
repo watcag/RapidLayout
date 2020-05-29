@@ -57,8 +57,8 @@ if __name__ == "__main__":
 
     # glob all xdc files
     cma_xdc = glob.glob(root + "/result/CMA_gif_data/*.xdc")
-    ea_xdc = glob.glob(root + "/result/EA_gif_data/*.xdc")
-    ear_xdc = glob.glob(root + "/result/EA-reduced_gif_data/*.xdc")
+    ea_xdc = glob.glob(root + "/result/NSGA_gif_data/*.xdc")
+    ear_xdc = glob.glob(root + "/result/NSGAR_gif_data/*.xdc")
     sa_xdc = glob.glob(root + "/result/SA_gif_data/*.xdc")
 
     # sort them

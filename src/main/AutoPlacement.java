@@ -82,6 +82,7 @@ public class AutoPlacement {
         switch (method.toUpperCase()) {
 
             case "SA":
+            case "GA":
             case "EA":
 
                 Opt.StartOptimization opt = new Opt.StartOptimization();
@@ -93,7 +94,6 @@ public class AutoPlacement {
                 break;
 
             case "EA-REDUCED":
-            case "SA-REDUCED":
 
                 OptReduced.StartOptimization opt_r = new OptReduced.StartOptimization();
                 result = opt_r.main(
@@ -115,7 +115,7 @@ public class AutoPlacement {
 
             default:
                 System.out.println("[ERROR]: Unsupported Solver. in function List<> find_solution(...)");
-                System.out.println("Choose between EA, SA, EA-reduced, SA-reduced, CMA");
+                System.out.println("Choose between EA, SA, EA-reduced, GA, CMA");
                 break;
         }
 

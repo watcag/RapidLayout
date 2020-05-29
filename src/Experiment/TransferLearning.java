@@ -34,14 +34,15 @@ public class TransferLearning {
         long start = System.nanoTime();
 
         // do not use absolute checker
-        NSGA.call(targetDevice, visualize, false);
+        double[] metrics = NSGA.call(targetDevice, visualize, false);
 
         long end = System.nanoTime();
 
         double secs = (end-start) / 1e9;
-
+        double bbox_size = metrics[0];
+        double wirelength = metrics[1];
         PrintWriter pr = new PrintWriter(new FileWriter(result + "Transfer/opt_runtime.txt", true), true);
-        pr.println(targetDevice + " " + secs);
+        pr.println(targetDevice + " " + secs + " " + bbox_size + " " + wirelength);
     }
 
 
