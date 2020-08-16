@@ -12,11 +12,11 @@ placement visualization.
 
 ## Contents
 
-1. [Install Dependencies](#Install Dependencies)
-2. [Build Project](#Build Project)
-3. [Configuration](#Configuration)
-4. [The RapidLayout Workflow](#The RapidLayout Workflow)
-5. [Paper Experiments](#Produce Experiments in the Paper)
+1. [Install Dependencies](#install-dependencies)
+2. [Build Project](#build-project)
+3. [Configuration](#donfiguration)
+4. [The RapidLayout Workflow](#the-rapidlayout-workflow)
+5. [Paper Experiments](#produce-experiments-in-the-paper)
 
 ## How to use RapidLayout
 
@@ -63,18 +63,18 @@ root folder. The parameters are illustrated as follows.
 
 |         Options         |              Value              |                         Illustration                         |
 | :---------------------: | :-----------------------------: | :----------------------------------------------------------: |
-|        `device`         |        `vu11p`, `vu13p`         | Available devices. RapidLayout supports XIlinx UltraScale+ Family, but not those with High-Bandwidth Memory (HBM) |
-|        `method`         | `CMA`, `EA`, `EA-reduced`, `SA` | Optimization methods: CMA-ES, NSGA-II, NSGA-II with reduced genotype, and Simulated Annealing. |
-|     `optimization`      |        `true` or `false`        | Whether to rerun the placement search process. When set to `false`, it will seek for a solution `xdc` file in the `result` folder. |
-|      `rapidSynth`       |        `true` or `false`        | RapidSynth saves synthesis time by replicating conv unit's Netlist. If enabled, only 1 conv block will be synthesized by Vivado, and the rest will be replicated from it. Otherwise, all conv units will be synthesized by Vivado and no replication will happen. |
-|        `SLRCopy`        |        `true` or `false`        | If enabled, only one SLR will be routed by Vivado, then the other SLRs' routed physical netlist will be copied from it. SLR copying accelerates runtime by 5x-6x. |
-|     `autoPipeline`      |        `true` or `false`        | If enabled, `pipelineDepth` will be ignored, and pipeline depth for each data path will be determined by RapidLayout. |
-|     `pipelineDepth`     |        integer, e.g. `4`        | Effective only when `autoPipeline` is disabled. All datapath will be pipelined with the specifed depth. |
-|    `vivado_verbose`     |        `true` or `false`        |         Whether to print Vivado output information.          |
-|      `opt_visual`       |        `true` or `false`        | Whether to display real-time visualization of objectives. This function is currently not available for CMA-ES. |
-|   `matplotlib_visual`   |        `true` or `false`        | Whether to draw placement visualization for optimization results. |
-|   `collect_gif_data`    |        `true` or `false`        | Collect placement evolutionary data to visualize the evolving process for current method. |
-| `collect_converge_data` |        `true` or `false`        | Collect objective data of each iteration for visualization.  |
+|        `device`         | `vu3p`, `vu5p`, `vu7p`, `vu9p`, `vu11p`, `vu13p`     | Supported FPGA devices |
+|        `method`         | `CMA`, `EA`, `EA-reduced`, `SA`, `GA` | Optimization methods: CMA-ES, NSGA-II, NSGA-II with reduced genotype, Simulated Annealing, and Genetic Algorithm |
+|     `optimization`      |        `true` or `false`        | If enabled, RapidLayout will run placement optimizaiton. Else, it uses the xdc placement file specified by `placement` |
+|     `placement`         |         String | e.g. `\home\name\RapidLayout\result\vu11p.xdc` | 
+|      `opt_visual`       |        `true` or `false`        | If enabled, a real-time graph of the objective functions will be displayed during optimization |
+|      `rapidSynth`       |        `true` or `false`        | If enabled, only 1 conv unit will be synthesized by Vivado and the rest will be replicated |
+|     `autoPipeline`      |        `true` or `false`        | If enabled, `pipelineDepth` will be ignored, and pipeline depth will be determined by the tool |
+|     `pipelineDepth`     |        Integer, e.g. `4`        | The number of pipelining registers |
+|    `vivado_verbose`     |        `true` or `false`        | Whether to print Vivado outputs |
+|   `genarate_gif`        |        `true` or `false`        | Whether to generate a GIF of the placement|
+|    `transfer`           |        `true` of `false`        | If enabled, `initial_xdc` must be specifed| 
+|  `initial_xdc`          |        String                   | e.g. `\home\name\RapidLayout\result\vu3p.xdc` |
 
 ### The RapidLayout Workflow
 
@@ -82,7 +82,7 @@ root folder. The parameters are illustrated as follows.
 
 RapidLayout uses the above configuration file to control its end-to-end workflow. No additional input is necessary, no manual command input is needed, everything is automatic. If you need to run a different experiment, just modify the configuration and start the program, no re-compilation is needed. 
 
-__Click [here](#Run the Main Workflow) to skip explanation__
+__Click [here](#run-the-main-workflow) to skip explanation__
 
 The main workflow proceeds as follows: 
 
@@ -223,6 +223,14 @@ Finally, the timing information is reported, and the final implemented design is
 $$$$ frequency =  664.4518272425249 MHz 
 ```
 
+At last, a visualization of the placement evolution process is rendered as a GIF.
+The GIF is saved at `visual/demo.gif`
+
+<div align="center">
+  <img width="45%" height="45%"
+  src=https://res.cloudinary.com/dxzx2bxch/image/upload/v1597576278/rapidlayout/demo_ctnsf9.gif>
+</div>
+
 
 
 ## Produce Experiments in the Paper
@@ -273,7 +281,7 @@ RapidWright's default placer could not find a viable placement solution because 
 
 <div align="center">
   <img width="100%" height="45%"
-  src="https://res.cloudinary.com/dx7aiyb0q/image/upload/v1585034471/performance_d1k6i1.jpg">
+  src="https://res.cloudinary.com/dxzx2bxch/image/upload/v1597576249/rapidlayout/objective-runtime_ebs46o.pdf">
 </div>
 
 First, build the project with `gradle build -p $RAPIDWRIGHT_PATH` at the project root directory. Then, just run 
@@ -288,7 +296,7 @@ It will run optimization for 100 times, collect model performace data and also t
 
 <div align="center">
   <img width="100%" height="50%"
-  src="https://res.cloudinary.com/dx7aiyb0q/image/upload/v1585034473/convergence_wlfnqi.jpg">
+  src="https://res.cloudinary.com/dxzx2bxch/image/upload/v1597576246/rapidlayout/convergence_r9dgj9.pdf">
 </div>
 
 To plot convergence for each method, we have to run `java Experiment.CompareMethods` first to collect convergence data. After that, just run:
@@ -298,21 +306,6 @@ $ java Experiment.Convergence 2>&1 | tee log.txt
 ```
 
 The convergence plot will be save in the `visual` directory.
-
-### CMA-ES Sensitivity Analysis
-
-<div align="center">
-  <img width="45%" height="45%"
-  src=https://res.cloudinary.com/dx7aiyb0q/image/upload/v1585034470/sensitivity_dqezpb.jpg>
-</div>
-
-CMA-ES's sensitivity analysis involves changing two parameters, sigma and population in a  range and collect the wirelength result at convergence. Just run:  
-
-```bash
-$ java Experiment.CMASensitivity 2>&1 | tee log.txt
-```
-
-The program will change the parameters and run CMA-ES optimization multiple times at each combination. The data will be collected and used to plot the above 3-D figure for sensitivity. 
 
 ### Create GIFs for Convergence
 
