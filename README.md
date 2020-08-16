@@ -82,8 +82,6 @@ root folder. The parameters are illustrated as follows.
 
 RapidLayout uses the above configuration file to control its end-to-end workflow. No additional input is necessary, no manual command input is needed, everything is automatic. If you need to run a different experiment, just modify the configuration and start the program, no re-compilation is needed. 
 
-__Click [here](#run-the-main-workflow) to skip explanation__
-
 The main workflow proceeds as follows: 
 
 1. Automatically determine the minimal replicating rectangle for placement according to the target device and the proportion of hard blocks in one convolutional building block. 
@@ -281,7 +279,7 @@ RapidWright's default placer could not find a viable placement solution because 
 
 <div align="center">
   <img width="100%" height="45%"
-  src="https://res.cloudinary.com/dxzx2bxch/image/upload/v1597576249/rapidlayout/objective-runtime_ebs46o.pdf">
+  src="https://res.cloudinary.com/dxzx2bxch/image/upload/v1597605577/rapidlayout/objective-runtime_p51dez.png">
 </div>
 
 First, build the project with `gradle build -p $RAPIDWRIGHT_PATH` at the project root directory. Then, just run 
@@ -296,7 +294,7 @@ It will run optimization for 100 times, collect model performace data and also t
 
 <div align="center">
   <img width="100%" height="50%"
-  src="https://res.cloudinary.com/dxzx2bxch/image/upload/v1597576246/rapidlayout/convergence_r9dgj9.pdf">
+  src="https://res.cloudinary.com/dxzx2bxch/image/upload/v1597605580/rapidlayout/convergence_pnvgze.png">
 </div>
 
 To plot convergence for each method, we have to run `java Experiment.CompareMethods` first to collect convergence data. After that, just run:
