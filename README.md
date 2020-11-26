@@ -14,6 +14,8 @@ If you find this project helpful, please cite our paper:
 }
 ```
 
+The original git repository: [git.uwaterloo.ca/watcag-public/rapidlayout](https://git.uwaterloo.ca/watcag-public/rapidlayout).
+
 We provide an end-to-end hard block placement and routing flow for
 for systolic accelerators on FPGA, RapidLayout. RapidLayout is built
 on top of [RapidWright](https://www.rapidwright.io/), an implementation
