@@ -1,5 +1,19 @@
 # RapidLayout：Fast Hard Block Placement of FPGA-optimized Systolic Arrays using Evolutionary Algorithms
 
+This is the code repository of our paper [_RapidLayout: Fast Hard Block Placement of FPGA-optimized Systolic Arrays using Evolutionary Algorithms_](https://ieeexplore.ieee.org/document/9221566).
+
+If you find this project helpful, please cite our paper:
+
+```
+@inproceedings{zhang2020rapidlayout,
+  title={RapidLayout: Fast Hard Block Placement of FPGA-optimized Systolic Arrays using Evolutionary Algorithms},
+  author={Zhang, Niansong and Chen, Xiang and Kapre, Nachiket},
+  booktitle={2020 30th International Conference on Field-Programmable Logic and Applications (FPL)},
+  pages={145-152},
+  year={2020}
+}
+```
+
 We provide an end-to-end hard block placement and routing flow for
 for systolic accelerators on FPGA, RapidLayout. RapidLayout is built
 on top of [RapidWright](https://www.rapidwright.io/), an implementation
@@ -14,7 +28,7 @@ placement visualization.
 
 1. [Install Dependencies](#install-dependencies)
 2. [Build Project](#build-project)
-3. [Configuration](#donfiguration)
+3. [Configuration](#configuration)
 4. [The RapidLayout Workflow](#the-rapidlayout-workflow)
 5. [Paper Experiments](#produce-experiments-in-the-paper)
 
@@ -307,7 +321,7 @@ The convergence plot will be save in the `visual` directory.
 
 ### Create GIFs for Convergence
 
-![fused](https://res.cloudinary.com/dx7aiyb0q/image/upload/v1585034473/fused_ib9aks.gif)
+![fused](https://res.cloudinary.com/dxzx2bxch/image/upload/v1606358362/rapidlayout/optimzed-fused_jq0zl5.gif)
 
 Finally, we can produce GIFs of the placement searching process for each method, and this can be done in a single line of command:
 
