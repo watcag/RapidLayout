@@ -14,7 +14,7 @@ If you find this project helpful, please cite our paper:
 }
 ```
 
-The original git repository: [git.uwaterloo.ca/watcag-public/rapidlayout](https://git.uwaterloo.ca/watcag-public/rapidlayout).
+The maintained public repository is [github.com/watcag/RapidLayout](https://github.com/watcag/RapidLayout).
 
 We provide an end-to-end hard block placement and routing flow for
 for systolic accelerators on FPGA, RapidLayout. RapidLayout is built
@@ -354,4 +354,3 @@ Permission is hereby granted, free of charge, to any person obtaining a copy of 
 <div style="text-align: justify;"> 
 THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  </div>
-
